@@ -131,13 +131,13 @@ input[type=date]{color-scheme:dark;width:auto}
 .hb div.r{display:grid;grid-template-columns:minmax(70px,120px) minmax(0,1fr) 38px;gap:10px;align-items:center;font-size:13px}
 .hb .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.prod{display:flex;flex-direction:column;gap:12px}
+.prod{display:flex;flex-direction:column;gap:12px;container-type:inline-size}
 .et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
 .et input{padding:5px 8px;text-align:center;font-variant-numeric:tabular-nums}
 .add-et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px auto;gap:8px}
 .et select,.add-et select{padding:5px 8px;font-size:12.5px}
 [hidden]{display:none!important}
-@media (max-width:560px){.et{grid-template-columns:minmax(0,1fr) 76px 24px 32px}.et select{order:5;grid-column:1/-1}.add-et{grid-template-columns:minmax(0,1fr) 76px}.add-et select,.add-et .btn{grid-column:1/-1}}
+@container (max-width:480px){.et{grid-template-columns:minmax(0,1fr) 76px 24px 32px}.et select{order:5;grid-column:1/-1}.add-et{grid-template-columns:minmax(0,1fr) 76px}.add-et select,.add-et .btn{grid-column:1/-1}}
 
 /* grade do gerente */
 .sheet-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
@@ -155,6 +155,9 @@ input[type=date]{color-scheme:dark;width:auto}
 .ck.on{background:rgba(74,222,154,.18);border-color:rgba(74,222,154,.55);color:var(--ok)}
 .ck.lock{background:rgba(255,255,255,.07);border-color:var(--line);color:var(--fg-3);cursor:not-allowed;font-size:10.5px;letter-spacing:.02em}
 .ck.lock:hover{border-color:var(--line)}
+.ck.pq{font-size:11px;font-variant-numeric:tabular-nums}
+.ck.half{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.55);color:var(--warn)}
+.ck.rest{border-style:dashed;border-color:rgba(251,191,36,.5)}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:var(--glass);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--fg-2)}
 .chip.on{border-color:rgba(240,138,117,.6);color:var(--fg);background:rgba(240,138,117,.12)}
@@ -303,7 +306,7 @@ function seed(){
 }
 
 let S,session=null,ui={tab:'geral',relK:'desempenho',dashEdit:false,per:{},rankSel:null,cmp:{on:false,a:null,b:null},prod:{os:null,cmp:false,os2:null},gerF:null,gerOs:null,login:{role:null,err:''}};
-let drafts={};
+let drafts={},qdrafts={};
 function initUi(){
   const w=()=>({p:'semana',de:addDays(today(),-6),ate:today()});
   ui.per={setor:{p:'mes',de:addDays(today(),-29),ate:today()},rank:{p:'hoje',de:addDays(today(),-6),ate:today()},perdas:w(),rel:{p:'mes',de:addDays(today(),-29),ate:today()},faltas:{p:'mes',de:addDays(today(),-29),ate:today()},prod:{p:'mes',de:addDays(today(),-29),ate:today()}};
@@ -315,8 +318,12 @@ const gerDia=()=>{const t=today();return(ui.gerD&&ui.gerD<=t&&can('retro'))?ui.g
 
 /* ---------- cálculos ---------- */
 const etapaDe=id=>by(S.etapas,id), osDe=id=>by(S.os,id), prodDe=id=>by(S.produtos,id), funcDe=id=>by(S.funcs,id);
-function ptsAp(a){const e=etapaDe(a.eid),o=osDe(a.oid);if(!e||!o)return 0;return a.sizes.reduce((s,n)=>s+(Number(o.grade[n])||0)*e.pontos,0)}
-function qtyAp(a){const o=osDe(a.oid);if(!o)return 0;return a.sizes.reduce((s,n)=>s+(Number(o.grade[n])||0),0)}
+const apQ=(a,n,o)=>(a.q&&a.q[n]!=null)?(Number(a.q[n])||0):(a.sizes.includes(n)?(Number(o.grade[n])||0):0);
+const apKeys=a=>{const s=new Set(a.sizes);if(a.q)Object.keys(a.q).forEach(k=>s.add(+k));return [...s]};
+const fmtSz=a=>apKeys(a).sort((x,y)=>x-y).map(n=>(a.q&&a.q[n]!=null)?n+'('+a.q[n]+')':String(n)).join(' ');
+function doneMap(o,eid,de,ate){const m={};S.aps.forEach(a=>{if(a.oid!==o.id||a.eid!==eid)return;if(de&&(a.d<de||a.d>ate))return;apKeys(a).forEach(n=>{m[n]=(m[n]||0)+apQ(a,n,o)})});Object.keys(m).forEach(n=>{m[n]=Math.min(m[n],Number(o.grade[n])||0)});return m}
+function ptsAp(a){const e=etapaDe(a.eid),o=osDe(a.oid);if(!e||!o)return 0;return apKeys(a).reduce((s,n)=>s+apQ(a,n,o)*e.pontos,0)}
+function qtyAp(a){const o=osDe(a.oid);if(!o)return 0;return apKeys(a).reduce((s,n)=>s+apQ(a,n,o),0)}
 function range(p,o){const t=today();
   if(p==='hoje')return[t,t];
   if(p==='ontem'){const y=addDays(t,-1);return[y,y]}
@@ -340,7 +347,7 @@ function dayTotals(de,ate){let pts=0,pec=0;S.aps.forEach(a=>{if(a.d>=de&&a.d<=at
 function osProgress(o){
   const es=etapasOs(o);const total=Object.values(o.grade).reduce((s,v)=>s+Number(v),0);
   if(!es.length||!total)return 0;let done=0;
-  es.forEach(e=>{const set=new Set();S.aps.forEach(a=>{if(a.oid===o.id&&a.eid===e.id)a.sizes.forEach(n=>set.add(n))});set.forEach(n=>done+=Number(o.grade[n])||0)});
+  es.forEach(e=>{Object.values(doneMap(o,e.id)).forEach(v=>done+=v)});
   return Math.min(100,done/(total*es.length)*100);
 }
 function perdaOs(oid,num){return S.perdas.filter(p=>p.oid===oid&&p.num===num).reduce((s,p)=>s+p.qtd,0)}
@@ -465,13 +472,13 @@ V.prods=()=>`<div class="stack">${header('Produtos e etapas','Cada etapa vale po
 V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido',`<div class="row"><button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button><button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button><input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
  ${S.os.map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
-  return `<tr><td><b>${esc(o.codigo)}</b></td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
+  return `<tr><td><b>${esc(o.codigo)}</b>${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
   <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'&&p<100?'<span class="pill ok">Finalizada</span>':''}</div></td>
   <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}"><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
   <td class="r">${o.status!=='Concluída'?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>${session.role==='dir'?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div></div>`;
 
 function osFrac(oid,eid,de,ate){const o=osDe(oid);const total=Object.values(o.grade).reduce((s,v)=>s+Number(v),0);if(!total)return 0;
-  const set=new Set();S.aps.forEach(a=>{if(a.oid===oid&&a.eid===eid&&a.d>=de&&a.d<=ate)a.sizes.forEach(n=>set.add(n))});let d=0;set.forEach(n=>d+=Number(o.grade[n])||0);return d/total*100}
+  let d=0;Object.values(doneMap(o,eid,de,ate)).forEach(v=>d+=v);return d/total*100}
 V.prod=()=>{
   const [de,ate]=rng('prod');
   const list=S.os;if(!list.length)return `<div class="stack">${header('Produção e análise de OS','')}<div class="glass empty">Cadastre uma OS para ver a análise.</div></div>`;
@@ -545,32 +552,85 @@ V.acesso=()=>`<div class="stack">${header('Acesso','Nome e senha de cada perfil 
  <p class="sm faint">As senhas ficam só nesta demonstração, dentro do navegador. Na versão com banco de dados, a proteção real precisa de login do Supabase.</p></form></div>`;
 
 /* ---------- Gerente ---------- */
+/* funcionários e OS: só os setores que a OS usa */
+function gerSetores(){
+  const sel=S.os.filter(o=>o.status==='Em andamento'&&(ui.gerOs||[]).includes(o.id));
+  if(!sel.length||sel.some(o=>!o.setores||!o.setores.length))return null;
+  const s=new Set();sel.forEach(o=>o.setores.forEach(x=>s.add(String(x).toLowerCase())));return s;
+}
+function gerFuncs(){const at=S.funcs.filter(f=>f.ativo),ss=gerSetores();return ss?at.filter(f=>ss.has(String(f.setor||'').toLowerCase())):at}
+/* etapas com quantidade parcial (Cola, Montagem, Sola) */
+function curQ(fid,oid,eid){
+  const dia=gerDia(),k=fid+'|'+oid+'|'+eid+'|'+dia;if(qdrafts[k])return qdrafts[k];
+  const a=S.aps.find(x=>x.d===dia&&x.fid===fid&&x.oid===oid&&x.eid===eid);if(!a)return {};
+  if(a.q)return Object.assign({},a.q);
+  const o=osDe(oid),m={};a.sizes.forEach(n=>{m[n]=Number(o.grade[n])||0});return m;
+}
+function othersQ(o,eid,n,fid,dia){let t=0;S.aps.forEach(a=>{if(a.oid===o.id&&a.eid===eid&&!(a.fid===fid&&a.d===dia))t+=apQ(a,n,o)});return t}
+function qPill(b,q){
+  const rem=+b.dataset.rem,oth=+b.dataset.oth;b.dataset.cur=q;
+  b.classList.remove('on','half','rest');
+  b.textContent=q>0?(q>=rem?'OK':String(q)):'';
+  b.classList.add(...(q>0?(q>=rem?['on']:['half']):(oth>0?['rest']:[])));
+}
+function applyQ(fid,oid,eid,n,q){
+  const k=fid+'|'+oid+'|'+eid+'|'+gerDia(),cur=Object.assign({},curQ(fid,oid,eid));
+  if(q>0)cur[n]=q;else delete cur[n];
+  qdrafts[k]=cur;
+  if(ui.qEl&&ui.qEl.isConnected)qPill(ui.qEl,q);
+}
+function openQ(btn){
+  const o=osDe(+btn.dataset.o),f=funcDe(+btn.dataset.f),e=etapaDe(+btn.dataset.e),n=+btn.dataset.n,rem=+btn.dataset.rem,cur=+btn.dataset.cur;
+  if(!o||!f||!e)return;
+  ui.qEl=btn;
+  const r=btn.getBoundingClientRect(),W=272,H=230;
+  const x=Math.max(8,Math.min(window.innerWidth-W-8,r.left+r.width/2-W/2));
+  let y=r.bottom+8;if(y+H>window.innerHeight-8)y=Math.max(8,r.top-H-8);
+  $('#pop').innerHTML=`<form class="note" id="qf" style="left:${x}px;top:${y}px" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" data-rem="${rem}"><div class="row between"><b>QUANTIDADE</b><span style="font-size:11px;color:#6b5a14">${esc(o.codigo)} · nº ${n} · falta ${rem}</span></div>
+   <label>${esc(f.nome)} fez em ${br(gerDia())}<input name="qtd" type="number" min="0" max="${rem}" value="${cur||rem}" required></label>
+   <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn g" data-act="qAll">Tudo (${rem})</button><button type="button" class="btn g" data-act="qClear">Limpar</button><button class="btn">Marcar</button></div>
+   <span class="sm" style="font-size:11px;color:#6b5a14">${esc(e.nome)}: menos que ${rem} = concluiu parcialmente. Outra funcionária pode terminar o restante.</span></form>`;
+  const i=$('#qf input[name=qtd]');if(i){i.focus();i.select()}
+}
 V.ger=()=>{
-  const ativos=S.funcs.filter(f=>f.ativo);
-  if(!ativos.length)return `<div class="stack">${header('Lançamento do dia','')}<div class="glass empty">Peça à Diretoria para cadastrar funcionários.</div></div>`;
-  if(!by(ativos,ui.gerF))ui.gerF=ativos[0].id;
+  const todos=S.funcs.filter(f=>f.ativo);
+  if(!todos.length)return `<div class="stack">${header('Lançamento do dia','')}<div class="glass empty">Peça à Diretoria para cadastrar funcionários.</div></div>`;
   const emAnd=S.os.filter(o=>o.status==='Em andamento');
   if(!ui.gerOs)ui.gerOs=emAnd.map(o=>o.id);
   ui.gerOs=ui.gerOs.filter(id=>emAnd.some(o=>o.id===id));
-  const t=gerDia(),hoje=today(),f=by(ativos,ui.gerF),lock=lockMap(f.id,t);
+  const ativos=gerFuncs();
+  const t=gerDia(),hoje=today();
+  const chips=`<div><div class="sm muted" style="margin-bottom:8px">OS em andamento</div><div class="chips">${emAnd.map(o=>`<button class="chip ${ui.gerOs.includes(o.id)?'on':''}" data-act="gerOs" data-id="${o.id}">${esc(o.codigo)}</button>`).join('')||'<span class="faint">Nenhuma OS em andamento.</span>'}</div></div>`;
+  if(!ativos.length)return `<div class="stack">${header('Lançamento do dia','')}<div class="glass stack" style="gap:14px">${chips}<div class="empty">Nenhum funcionário ativo nos setores das OS selecionadas.</div></div></div>`;
+  if(!by(ativos,ui.gerF))ui.gerF=ativos[0].id;
+  const f=by(ativos,ui.gerF),lock=lockMap(f.id,t);
   const blocks=emAnd.filter(o=>ui.gerOs.includes(o.id)).map(o=>{
     const es=etapasOs(o);
-    const sizes=Object.keys(o.grade).map(Number).sort((a,b)=>b-a);
+    const sizes=Object.keys(o.grade).filter(n=>Number(o.grade[n])>0).map(Number).sort((a,b)=>b-a);
     return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>${esc(o.codigo)} - ${esc(o.cliente)}</h3><span class="sm faint">${esc((prodDe(o.pid)||{}).nome)} · ${esc(o.cor)} · ${sizes[0]} a ${sizes[sizes.length-1]}</span></div>
     <div class="sheet-wrap"><table class="grade"><thead><tr><th class="st">Numeração</th>${sizes.map(n=>`<th>${n}</th>`).join('')}</tr>
     <tr class="qrow"><th class="st">Quantidade</th>${sizes.map(n=>{const lost=perdaOs(o.id,n);const left=Number(o.grade[n])-lost;return `<td><button class="qcell ${lost?'lost':''}" data-act="perda" data-o="${o.id}" data-n="${n}" title="${lost?`${lost} perdida(s). `:''}Toque para registrar perda">${left}</button></td>`}).join('')}</tr></thead>
-    <tbody>${es.map(e=>{const cur=curSizes(f.id,o.id,e.id);return `<tr><th class="st">${esc(e.nome)}</th>${sizes.map(n=>{
+    <tbody>${es.map(e=>{
+      if(isParc(e)){const mq=curQ(f.id,o.id,e.id);
+        return `<tr><th class="st">${esc(e.nome)}<span class="faint" style="display:block;font-size:10.5px;font-weight:400">quantidade parcial</span></th>${sizes.map(n=>{
+          const Q=Math.max(0,(Number(o.grade[n])||0)-perdaOs(o.id,n)),oth=othersQ(o,e.id,n,f.id,t),rem=Math.max(0,Q-oth),mine=Math.min(mq[n]||0,rem);
+          if(rem===0&&!mine){const msg=`Concluído: ${Q} de ${Q} já feitos por outras funcionárias.`;return `<td><button type="button" class="ck lock" data-act="ck" data-msg="${esc(msg)}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">&#10003;</button></td>`}
+          const cls=mine>0?(mine>=rem?'on':'half'):(oth>0?'rest':''),txt=mine>0?(mine>=rem?'OK':mine):'';
+          const msg=`Total ${Q} · feito por outras: ${oth} · falta ${rem}${mine?` · ${f.nome}: ${mine}`:''}`;
+          return `<td><button class="ck pq ${cls}" data-act="ckq" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" data-rem="${rem}" data-oth="${oth}" data-cur="${mine}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">${txt}</button></td>`}).join('')}</tr>`}
+      const cur=curSizes(f.id,o.id,e.id);return `<tr><th class="st">${esc(e.nome)}</th>${sizes.map(n=>{
       const L=lock[o.id+'|'+e.id+'|'+n];
       if(L){const msg=L.mine?`Você já lançou este item em ${br(L.d)}. Mude a data para corrigir.`:`${L.nome} já fez este item${L.draft?' (marcado, ainda não salvo)':' em '+br(L.d)}.`;
         return `<td><button type="button" class="ck lock" data-act="ck" data-msg="${esc(msg)}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">${esc(L.nome.trim().slice(0,2).toUpperCase())}</button></td>`}
       return `<td><button class="ck ${cur.includes(n)?'on':''}" data-act="ck" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" aria-label="${esc(e.nome)} ${n}">OK</button></td>`}).join('')}</tr>`}).join('')||`<tr><td class="empty" colspan="${sizes.length+1}">Nenhuma etapa dos setores desta OS.</td></tr>`}</tbody></table></div></div>`}).join('');
   const pend=avPend('ger');
+  const temParc=emAnd.some(o=>ui.gerOs.includes(o.id)&&etapasOs(o).some(isParc));
   return `<div class="stack">${header('Lançamento do dia','Marque as etapas concluídas de cada numeração. Toque na quantidade para registrar perda')}
-  ${pend?`<button class="glass row between" style="text-align:left;border-color:rgba(240,138,117,.5)" data-act="tab" data-k="avisos"><span>${ic('bell')}<b style="margin-left:8px">${pend} mensagem(ns) nova(s) da Diretoria</b></span><span class="faint sm">Ver</span></button>`:''}
+  ${pend?`<button class="glass row between" style="text-align:left;border-color:rgba(240,138,117,.5)" data-act="tab" data-k="avisos"><span>${ic('bell')}<b style="margin-left:8px">${pend} mensagem(ns) nova(s)</b></span><span class="faint sm">Ver</span></button>`:''}
   <div class="glass stack" style="gap:14px"><div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">${ic('cal')}Data do lançamento ${can('retro')?`<input type="date" value="${t}" max="${hoje}" data-chg="gerD" aria-label="Data do lançamento">`:`<b style="color:var(--fg)">${br(t)} (hoje)</b>`}</label>${t!==hoje?`<span class="pill warn">Lançando em ${dow(t)} ${br(t)}</span><button class="btn sm" data-act="gerHoje">Voltar para hoje</button>`:''}</div>
     ${faltouEm(f.id,t)?`<div class="pill bad" style="align-self:flex-start">${esc(f.nome)} está marcado(a) como ausente em ${br(t)}: ${esc(faltouEm(f.id,t).motivo)}</div>`:''}<label class="f" style="max-width:320px">Funcionário<select data-chg="gerF">${ativos.map(x=>`<option value="${x.id}" ${x.id===f.id?'selected':''}>${esc(x.nome)} - ${esc(x.setor)}</option>`).join('')}</select></label>
-    <div><div class="sm muted" style="margin-bottom:8px">OS em andamento</div><div class="chips">${emAnd.map(o=>`<button class="chip ${ui.gerOs.includes(o.id)?'on':''}" data-act="gerOs" data-id="${o.id}">${esc(o.codigo)}</button>`).join('')||'<span class="faint">Nenhuma OS em andamento.</span>'}</div></div>
-    <p class="sm faint">Quadrados cinza com iniciais já foram lançados por outra funcionária (ou em outra data) e ficam bloqueados. Toque para ver quem fez.</p></div>
+    ${chips}
+    <p class="sm faint">Quadrados cinza com iniciais já foram lançados por outra funcionária (ou em outra data) e ficam bloqueados. Toque para ver quem fez.${temParc?' Nas etapas com quantidade parcial, toque no quadrado e informe quantas peças foram feitas; o restante fica livre para outra funcionária.':''}</p></div>
   ${blocks}
   <div class="bulk"><button class="btn primary" data-act="bulk">${ic('save')}Salvar todas as grades e próximo funcionário</button></div></div>`;
 };
@@ -618,7 +678,7 @@ const REP={
    rows:rankList(de,ate).map((r,i)=>[i+1,r.f.nome,r.f.setor,r1(r.pts),r.pec,r.perd,r1(r.taxa),S.faltas.filter(x=>x.fid===r.f.id&&x.d>=de&&x.d<=ate).length,r.forte])})},
  diario:{t:'Produção por dia',per:true,build:(de,ate)=>{const rows=[];for(let d=de,i=0;d<=ate&&i<400;d=addDays(d,1),i++){const x=dayTotals(d,d);rows.push([br(d),r1(x.pts),x.pec,x.perd])}return{head:['Data','Pontos','Peças','Perdas'],rows}}},
  apont:{t:'Lançamentos detalhados',per:true,build:(de,ate)=>({head:['Data','Funcionário','OS','Etapa','Numerações','Peças','Pontos'],
-   rows:S.aps.filter(a=>a.d>=de&&a.d<=ate).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).map(a=>[br(a.d),(funcDe(a.fid)||{}).nome||'-',(osDe(a.oid)||{}).codigo||'-',(etapaDe(a.eid)||{}).nome||'-',a.sizes.slice().sort((x,y)=>x-y).join(' '),qtyAp(a),r1(ptsAp(a))])})},
+   rows:S.aps.filter(a=>a.d>=de&&a.d<=ate).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).map(a=>[br(a.d),(funcDe(a.fid)||{}).nome||'-',(osDe(a.oid)||{}).codigo||'-',(etapaDe(a.eid)||{}).nome||'-',fmtSz(a),qtyAp(a),r1(ptsAp(a))])})},
  os:{t:'Fichas e ordens de serviço',per:false,build:()=>({head:['OS','Cliente','Produto','Cor','Peças','Perdidas','Progresso (%)','Status'],
    rows:S.os.map(o=>[o.codigo,o.cliente,(prodDe(o.pid)||{}).nome||'-',o.cor,Object.values(o.grade).reduce((s,v)=>s+Number(v),0),S.perdas.filter(p=>p.oid===o.id).reduce((s,p)=>s+p.qtd,0),r1(osProgress(o)),o.status])})},
  perdas:{t:'Perdas',per:true,build:(de,ate)=>({head:['Data','OS','Etapa','Funcionário','Numeração','Quantidade','Autor'],
@@ -676,6 +736,16 @@ const TABS_GER_ALL=[['ger','Lançamento do dia','clip'],['os','Fichas e OS','pac
 const PERMS=[['ger','Lançamento do dia'],['retro','Lançar em dias anteriores'],['os','Fichas e OS'],['rank','Ranking'],['setor','Análise por setor'],['perdas','Perdas'],['faltas','Presença e faltas'],['avisos','Avisos'],['relat','Relatórios']];
 const DEFAULT_GER=['ger','retro','os','rank','setor','faltas','avisos'];
 const can=k=>!!session&&(session.role==='dir'||(session.perms||[]).includes(k));
+/* ---------- unidades (Piracaia e São Paulo) ---------- */
+const UNIDADES=[['PIR','Piracaia'],['SP','São Paulo']];
+const UCOLS=['funcs','os','aps','perdas','avisos','faltas','dash'];
+const uOf=d=>(d&&d.u)||'PIR';
+const unAtual=()=>ui.un||'PIR';
+const unNome=u=>u==='ALL'?'Todas as unidades':((UNIDADES.find(x=>x[0]===u)||[0,u])[1]);
+function inView(c,d){if(!UCOLS.includes(c))return true;const v=unAtual();return c==='dash'?uOf(d)===v:(v==='ALL'||uOf(d)===v)}
+/* etapas com quantidade parcial */
+const parcSetores=()=>((S.cfg&&S.cfg.parcial)||['Cola','Montagem','Sola']).map(x=>String(x).toLowerCase());
+const isParc=e=>!!e&&!!e.setor&&parcSetores().includes(String(e.setor).toLowerCase());
 const brandHtml=sub=>`<div class="brand"><img src="${LOGO}" alt="Ritmus Dance"><b>Ritmus Dance</b><span>${sub}</span></div>`;
 
 function loginHtml(){
@@ -696,10 +766,12 @@ function shellHtml(){
   const nome=meuNome();
   if(tabs.length&&!tabs.some(t=>t[0]===ui.tab))ui.tab=tabs[0][0];
   const view=tabs.length?(V[ui.tab]||V.geral)():`<div class="stack">${header('Sem acesso','')}<div class="glass empty">Seu usuário ainda não tem nenhuma tela liberada. Fale com a Diretoria.</div></div>`;
-  return `<div class="app"><aside class="side">${brandHtml('Produção')}
+  const unSel=dir?`<div class="seg" role="group" aria-label="Unidade">${[['PIR','Piracaia'],['SP','SP'],['ALL','Todas']].map(([u,l])=>`<button class="${unAtual()===u?'on':''}" data-act="unit" data-u="${u}">${l}</button>`).join('')}</div>`:`<div class="sm muted" style="padding:0 4px">Unidade: <b>${esc(unNome(unAtual()))}</b></div>`;
+  const faixa=dir&&unAtual()==='ALL'?`<div class="pill warn" style="align-self:flex-start;margin-bottom:14px">Vendo todas as unidades juntas. Para cadastrar ou lançar, escolha Piracaia ou SP no menu.</div>`:'';
+  return `<div class="app"><aside class="side">${brandHtml('Produção')}${unSel}
    <nav class="nav" aria-label="Menu">${tabs.map(([k,l,i])=>`<button class="${ui.tab===k?'on':''}" data-act="tab" data-k="${k}">${ic(i)}${l}${k==='avisos'&&avPend(session.role)?`<span class="pill bad" style="margin-left:auto">${avPend(session.role)}</span>`:''}</button>`).join('')}</nav>
    <div class="foot"><div class="who">${dir?'Diretoria':'Gerência'}: <strong>${esc(nome)}</strong></div><button class="btn" data-act="logout">${ic('out')}Sair</button></div></aside>
-   <main class="main">${view}</main></div>`;
+   <main class="main">${faixa}${view}</main></div>`;
 }
 
 function draw(keepScroll){
@@ -807,6 +879,7 @@ function formOs(id){
    <label class="f">Cor<input name="cor" data-live placeholder="Ex: Rosa" value="${esc(o?o.cor:'')}" required></label>
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${nextNum}" required></label></div>
    <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o?o.cliente:'')}" required></label>
+   ${o?'':`<label class="f">Unidade da OS<select name="un">${UNIDADES.map(([u,l])=>`<option value="${u}" ${u===unAtual()?'selected':''}>${l}</option>`).join('')}</select></label>`}
     <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(!o||!o.setores||!o.setores.length||o.setores.includes(st))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div><p class="sm faint" style="margin-top:6px">Só as etapas desses setores contam no progresso e aparecem para o gerente. Etapas sem setor (definido em Produtos e etapas) aparecem sempre. Você pode finalizar a OS a qualquer momento.</p></div>
    <div class="row between"><span class="muted sm">Código da OS</span><b id="codeprev" style="font-size:18px;letter-spacing:.04em">${codeOs(pid0,o?o.cor:'',nextNum)}</b></div>
    <div class="row between"><span class="muted sm">Total da grade</span><b id="gradeTot"></b></div>
@@ -822,10 +895,14 @@ function formOs(id){
     const marc=fd.getAll('setores'),todosS=setoresAll(),setores=(marc.length===0||marc.length>=todosS.length)?[]:marc;
     if(o){
       Object.assign(o,{codigo,cliente,cor,pedido,grade,setores});
-      S.aps.forEach(a=>{if(a.oid===o.id)a.sizes=a.sizes.filter(n=>grade[n])});S.aps=S.aps.filter(a=>a.sizes.length);
+      S.aps.forEach(a=>{if(a.oid===o.id){a.sizes=a.sizes.filter(n=>grade[n]);if(a.q)Object.keys(a.q).forEach(k=>{if(!grade[k])delete a.q[k]})}});S.aps=S.aps.filter(a=>a.sizes.length||(a.q&&Object.keys(a.q).length));
       S.perdas=S.perdas.filter(p=>p.oid!==o.id||grade[p.num]);
       Object.keys(drafts).forEach(k=>{if(k.split('|')[1]==o.id)drafts[k]=drafts[k].filter(n=>grade[n])});
-    }else S.os.push({id:uid(),codigo,cliente,cor,pedido,pid,grade,setores,status:'Em andamento'});
+    }else{
+      const dest=String(fd.get('un')||unAtual()),rec={id:uid(),codigo,cliente,cor,pedido,pid,grade,setores,status:'Em andamento'};
+      if(dest!==unAtual()){criarOsOutraUnidade(rec,dest);return false}
+      S.os.push(rec);
+    }
     commit(o?'OS '+codigo+' atualizada.':'OS '+codigo+' criada.',true);
   },true);
   quickInit();osRangeRefresh();
@@ -900,11 +977,25 @@ function bulkSave(){
     else if(i>=0)S.aps[i].sizes=sizes;else S.aps.push({d:dia,fid,oid,eid,sizes});
     n++;
   });
-  drafts={};
-  const ativos=S.funcs.filter(f=>f.ativo);
+  let cap=0;
+  Object.keys(qdrafts).forEach(k=>{
+    const p=k.split('|'),fid=+p[0],oid=+p[1],eid=+p[2],dia=p[3]||today(),o=osDe(oid);
+    if(!o||!funcDe(fid)||!etapaDe(eid))return;
+    const q={};
+    Object.keys(qdrafts[k]).forEach(ns=>{const nn=+ns,want=Number(qdrafts[k][ns])||0;
+      const Q=Math.max(0,(Number(o.grade[nn])||0)-perdaOs(oid,nn)),oth=othersQ(o,eid,nn,fid,dia),v=Math.min(want,Math.max(0,Q-oth));
+      if(want>v)cap++;if(v>0)q[nn]=v});
+    const i=S.aps.findIndex(x=>x.d===dia&&x.fid===fid&&x.oid===oid&&x.eid===eid);
+    if(!Object.keys(q).length){if(i>=0)S.aps.splice(i,1)}
+    else if(i>=0){S.aps[i].sizes=[];S.aps[i].q=q}else S.aps.push({d:dia,fid,oid,eid,sizes:[],q});
+    n++;
+  });
+  drafts={};qdrafts={};
+  const ativos=gerFuncs();
   const atual=funcDe(ui.gerF);
   let msg=n?'Grades de '+(atual?atual.nome:'')+' salvas.':'Nenhuma alteração para salvar.';
   if(drop)msg+=' '+drop+' item(ns) já lançado(s) por outra pessoa foram ignorados.';
+  if(cap)msg+=' '+cap+' quantidade(s) foram reduzidas porque outra funcionária já fez parte.';
   if(ativos.length){const i=ativos.findIndex(f=>f.id===ui.gerF);const nx=ativos[(i+1)%ativos.length];ui.gerF=nx.id;msg+=' Agora: '+nx.nome+'.'}
   persist();draw();window.scrollTo(0,0);toast(msg);
 }
@@ -969,13 +1060,16 @@ const A={
   rankSel(d){const id=+d.id;ui.rankSel=(!id||ui.rankSel===id)?null:id;draw(true)},
   cmpTog(){ui.cmp.on=!ui.cmp.on;draw(true)},
   delPerda(d){S.perdas=S.perdas.filter(p=>p.id!==+d.id);commit('Registro removido.',true)},
-  reset(){confirmBox('Apagar tudo e voltar aos dados de exemplo?','Restaurar',()=>{S=seed();drafts={};initUi();ui.rankSel=null;ui.prod={os:null,cmp:false,os2:null};ui.gerF=null;ui.gerOs=null;commit('Dados de exemplo restaurados.')})},
+  reset(){confirmBox('Apagar tudo e voltar aos dados de exemplo?','Restaurar',()=>{S=seed();drafts={};qdrafts={};initUi();ui.rankSel=null;ui.prod={os:null,cmp:false,os2:null};ui.gerF=null;ui.gerOs=null;commit('Dados de exemplo restaurados.')})},
   ck(d,el){
     if(el.classList.contains('lock')){toast(el.dataset.msg||'Item já lançado.');return}
     const k=d.f+'|'+d.o+'|'+d.e+'|'+gerDia(),n=+d.n;const arr=curSizes(+d.f,+d.o,+d.e).slice();
     const i=arr.indexOf(n);if(i>=0)arr.splice(i,1);else arr.push(n);
     drafts[k]=arr;el.classList.toggle('on',i<0);
   },
+  ckq(d,el){openQ(el)},
+  qAll(){const i=$('#qf input[name=qtd]');if(i)i.value=i.max},
+  qClear(){const f=$('#qf');if(!f)return;const d=f.dataset;applyQ(+d.f,+d.o,+d.e,+d.n,0);closePop()},
   gerOs(d){const id=+d.id,i=ui.gerOs.indexOf(id);if(i>=0)ui.gerOs.splice(i,1);else ui.gerOs.push(id);draw(true)},
   perda(d,el){openPerda(el)},
   bulk(){bulkSave()}
@@ -993,8 +1087,8 @@ const C={
 };
 
 document.addEventListener('click',e=>{
-  const pop=e.target.closest('#pf');
-  if(!pop&&!e.target.closest('[data-act=perda]'))closePop();
+  const pop=e.target.closest('#pf,#qf');
+  if(!pop&&!e.target.closest('[data-act=perda],[data-act=ckq]'))closePop();
   const el=e.target.closest('[data-act]');if(!el||!el.dataset.act)return;
   const fn=A[el.dataset.act];if(fn){if(el.tagName==='BUTTON'||el.tagName==='TR'||el.classList.contains('scrim')||true)fn(el.dataset,el)}
 });
@@ -1009,7 +1103,9 @@ document.addEventListener('submit',e=>{
   const f=e.target;e.preventDefault();
   if(f.id==='mf'){if(modalOk){const r=modalOk(new FormData(f));if(r!==false)closeModal()}}
   else if(f.id==='lgf'){const d=new FormData(f);dbLogin(String(d.get('email')||'').trim(),String(d.get('pw')||''))}
+  else if(f.id==='qf'){const d=f.dataset;applyQ(+d.f,+d.o,+d.e,+d.n,Math.max(0,Math.min(+d.rem,parseInt(new FormData(f).get('qtd'))||0)));closePop()}
   else if(f.id==='avf'){
+    if(unAtual()==='ALL'){toast('Escolha Piracaia ou SP no menu para enviar mensagens.');return}
     const d=new FormData(f),texto=String(d.get('texto')||'').trim();if(!texto){toast('Escreva a mensagem.');return}
     const me=session.role,ag=new Date();
     S.avisos.push({id:uid(),d:today(),h:pad(ag.getHours())+':'+pad(ag.getMinutes()),texto,urgente:d.get('urgente')==='on',de:me,autor:meuNome(),lido:false});
@@ -1141,7 +1237,7 @@ async function lerPlanilha(file){
       if(x.acao==='novo'){S.os.push({id:uid(),codigo:x.codigo,cliente:x.cliente,cor:x.cor,pedido:x.ped,pid:x.prod.id,grade:x.grade,status:x.status||'Em andamento'});n1++}
       else if(x.acao==='atualizar'&&doUpd){
         const o=x.ex;Object.assign(o,{cliente:x.cliente,cor:x.cor,pedido:x.ped,grade:x.grade});if(x.status)o.status=x.status;
-        S.aps.forEach(a=>{if(a.oid===o.id)a.sizes=a.sizes.filter(n=>o.grade[n])});S.aps=S.aps.filter(a=>a.sizes.length);
+        S.aps.forEach(a=>{if(a.oid===o.id){a.sizes=a.sizes.filter(n=>o.grade[n]);if(a.q)Object.keys(a.q).forEach(k=>{if(!o.grade[k])delete a.q[k]})}});S.aps=S.aps.filter(a=>a.sizes.length||(a.q&&Object.keys(a.q).length));
         S.perdas=S.perdas.filter(p=>p.oid!==o.id||o.grade[p.num]);
         Object.keys(drafts).forEach(k=>{if(k.split('|')[1]==o.id)drafts[k]=drafts[k].filter(n=>o.grade[n])});n2++;
       }
@@ -1166,7 +1262,7 @@ Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPl
 
 /* ---------- Supabase: login, sincronização e tempo real ---------- */
 const CFG=window.RITMUS_CONFIG||{};
-let sb=null,chan=null,snap={},flushT=null,flushing=false,again=false,redrawPending=false,redrawT=null,subOnce=false;
+let lastPersist=0,sb=null,chan=null,snap={},flushT=null,flushing=false,again=false,redrawPending=false,redrawT=null,subOnce=false;
 const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash'];
 const ALL=[...COLS,'cfg'];
 const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],nid:1});
@@ -1176,6 +1272,7 @@ const rowsOf=c=>c==='cfg'?[['main',S.cfg]]:S[c].map(x=>[keyOf(c,x),x]);
 const bySort=(a,b)=>(a.pos||0)-(b.pos||0);
 
 function applyRow(c,id,d){
+  if(!inView(c,d))return removeRow(c,id);
   const s=canon(d),sn=snap[c]||(snap[c]=new Map());
   if(sn.get(id)===s)return false;
   sn.set(id,s);
@@ -1213,7 +1310,7 @@ async function loadAll(first){
 }
 
 /* gravação: compara com o último estado salvo e envia só o que mudou */
-function persist(){clearTimeout(flushT);flushT=setTimeout(flush,350)}
+function persist(){lastPersist=Date.now();clearTimeout(flushT);flushT=setTimeout(flush,350)}
 async function flush(){
   if(!sb||!session)return;
   if(flushing){again=true;return}
@@ -1221,9 +1318,12 @@ async function flush(){
   try{
     S.dash.forEach((w,i)=>{w.pos=i});
     const up=[],del=[];
-    for(const c of ALL){
+    const WR=session.role==='dir'?ALL:['os','aps','perdas','faltas','avisos'];
+    for(const c of WR){
       const cur=new Map(rowsOf(c)),old=snap[c]||new Map();
-      cur.forEach((o,k)=>{const s=canon(o);if(old.get(k)!==s)up.push({colecao:c,id:k,dados:o,s})});
+      cur.forEach((o,k)=>{
+        if(UCOLS.includes(c)&&!old.has(k)&&!o.u){const u=c==='aps'?uOf(osDe(o.oid)):(c==='dash'?unAtual():(unAtual()==='ALL'?'':unAtual()));if(u)o.u=u}
+        const s=canon(o);if(old.get(k)!==s)up.push({colecao:c,id:k,dados:o,s})});
       old.forEach((_,k)=>{if(!cur.has(k))del.push([c,k])});
     }
     for(let i=0;i<up.length;i+=400){
@@ -1240,12 +1340,23 @@ async function flush(){
       ids.forEach(k=>snap[c].delete(k));
     }
   }catch(e){
-    console.error(e);toast('Não consegui salvar agora. Confira a internet; vou tentar de novo.');setTimeout(persist,5000);
+    console.error(e);toast('Não consegui salvar agora ('+((e&&e.message)||'erro')+'). Vou tentar de novo.');setTimeout(persist,5000);
   }
   flushing=false;
   if(again){again=false;persist()}
 }
 window.addEventListener('online',persist);
+async function pollAvisos(){
+  if(!sb||!session||document.hidden||flushing||Date.now()-lastPersist<4000)return;
+  try{
+    const {data,error}=await sb.from('registros').select('id,dados').eq('colecao','avisos');if(error)return;
+    const seen=new Set();let ch=false;
+    (data||[]).forEach(r=>{seen.add(r.id);if(applyRow('avisos',r.id,r.dados))ch=true});
+    [...((snap.avisos)||new Map()).keys()].forEach(k=>{if(!seen.has(k)&&removeRow('avisos',k))ch=true});
+    if(ch)wantRedraw();
+  }catch(e){}
+}
+setInterval(pollAvisos,12000);
 
 /* tempo real */
 function wantRedraw(){
@@ -1289,10 +1400,14 @@ async function enter(){
     if(error||!role){await sb.auth.signOut();session=null;ui.login={err:'Este usuário não tem acesso ao sistema.'};await fetchNames();draw();return false}
     acc={papel:role,nome:null,permissoes:null};
   }
+  {const pa=Array.isArray(acc.permissoes)?acc.permissoes:[];let v='PIR';
+   if(acc.papel==='dir'){try{v=localStorage.getItem('ritmus-un')||'PIR'}catch(e){}if(!['PIR','SP','ALL'].includes(v))v='PIR'}
+   else{const t=pa.find(p=>/^un:/.test(String(p)));v=t?String(t).slice(3):'PIR';if(!UNIDADES.some(x=>x[0]===v))v='PIR'}
+   ui.un=v}
   msgScreen('Carregando…','Buscando os dados da empresa.');
   const {init}=await loadAll(true);
   const role=acc.papel;
-  session={role,nome:acc.nome||null,email:acc.email||'',perms:role==='dir'?null:(Array.isArray(acc.permissoes)?acc.permissoes:DEFAULT_GER.slice())};
+  session={role,un:ui.un,nome:acc.nome||null,email:acc.email||'',perms:role==='dir'?null:(Array.isArray(acc.permissoes)?acc.permissoes:DEFAULT_GER.slice())};
   const first=TABS_GER_ALL.find(t=>can(t[0]));
   ui.tab=role==='dir'?'geral':(first?first[0]:'avisos');
   ui.login={err:''};ui.gerD=null;ui.users=null;ui.usersErr='';
@@ -1305,6 +1420,7 @@ async function enter(){
     await sb.from('registros').upsert({colecao:'meta',id:'init',dados:{ok:true}},{onConflict:'colecao,id'});
     persist();
   }
+  ensureDash();
   subscribe();draw();window.scrollTo(0,0);return true;
 }
 async function dbLogin(email,pw){
@@ -1319,10 +1435,33 @@ async function signOutAll(){
   clearTimeout(flushT);
   if(chan){sb.removeChannel(chan);chan=null}subOnce=false;
   try{await sb.auth.signOut()}catch(e){}
-  session=null;S=emptyState();snap={};drafts={};initUi();ui.login={err:''};ui.gerD=null;ui.users=null;
+  session=null;S=emptyState();snap={};drafts={};qdrafts={};initUi();ui.login={err:''};ui.gerD=null;ui.users=null;
   await fetchNames();draw();
 }
 A.logout=()=>{signOutAll()};
+function ensureDash(){if(session&&session.role==='dir'&&!S.dash.length){S.dash=defaultDash(uid);persist()}}
+A.unit=async d=>{
+  if(!session||session.role!=='dir'||ui.un===d.u||!['PIR','SP','ALL'].includes(d.u))return;
+  clearTimeout(flushT);await flush();
+  ui.un=d.u;try{localStorage.setItem('ritmus-un',d.u)}catch(e){}
+  drafts={};qdrafts={};ui.gerOs=null;ui.gerF=null;ui.rankSel=null;ui.prod={os:null,cmp:false,os2:null};
+  msgScreen('Carregando…','Abrindo '+unNome(d.u)+'.');
+  try{await loadAll(true);ensureDash()}catch(e){toast('Não consegui carregar essa unidade.')}
+  draw();window.scrollTo(0,0);
+};
+['newFunc','newOs','newFalta','osImport'].forEach(k=>{const f0=A[k];if(typeof f0==='function')A[k]=function(...a){if(session&&unAtual()==='ALL'){toast('Escolha Piracaia ou SP no menu para cadastrar.');return}return f0.apply(this,a)}});
+async function criarOsOutraUnidade(rec,dest){
+  try{
+    const {data,error}=await sb.from('registros').select('dados').eq('colecao','os');if(error)throw error;
+    if((data||[]).some(r=>uOf(r.dados)===dest&&r.dados.codigo===rec.codigo)){toast('Já existe a OS '+rec.codigo+' em '+unNome(dest)+'.');return}
+    const ag=new Date(),quando=br(today())+' '+pad(ag.getHours())+':'+pad(ag.getMinutes());
+    const dados=Object.assign({},rec,{u:dest,criadaPor:{un:unAtual(),unNome:unNome(unAtual()),autor:meuNome(),em:quando}});
+    let r=await sb.from('registros').upsert({colecao:'os',id:String(rec.id),dados},{onConflict:'colecao,id'});if(r.error)throw r.error;
+    const av={id:uid(),d:today(),h:pad(ag.getHours())+':'+pad(ag.getMinutes()),texto:'OS '+rec.codigo+' ('+rec.cliente+') criada na unidade '+unNome(dest)+' por '+meuNome()+', da unidade '+unNome(unAtual())+', em '+quando+'.',urgente:false,de:'sis',autor:'Sistema',lido:false,u:dest};
+    r=await sb.from('registros').upsert({colecao:'avisos',id:String(av.id),dados:av},{onConflict:'colecao,id'});if(r.error)throw r.error;
+    closeModal();toast('OS '+rec.codigo+' criada em '+unNome(dest)+'. A unidade foi avisada.');
+  }catch(e){toast('Não consegui criar a OS na outra unidade: '+((e&&e.message)||'erro'))}
+}
 A.backRole=()=>{ui.login={err:''};draw()};
 A.fillEmail=d=>{const i=$('#lgf [name=email]');if(!i)return;i.value=(d.r==='dir'?CFG.EMAIL_DIRETORIA:CFG.EMAIL_GERENTE)||'';const p=$('#lgf [name=pw]');if(p)p.focus()};
 {const _tab=A.tab;A.tab=d=>{if(d.k==='ger'&&ui.tab!=='ger')ui.gerD=null;_tab(d);if(d.k==='usuarios')loadUsers()}}
@@ -1376,22 +1515,24 @@ V.usuarios=()=>{
   let body;
   if(ui.users===null)body='<div class="glass empty">Carregando usuários…</div>';
   else if(ui.usersErr)body=`<div class="glass stack"><h3>Não foi possível carregar</h3><p class="muted">${esc(ui.usersErr)}</p>${/controle_acesso/.test(ui.usersErr)?'<p class="sm faint">Abra o SQL Editor do Supabase, cole o conteúdo do arquivo controle_acesso.sql e clique em Run. Depois volte aqui.</p>':''}<div><button class="btn" data-act="reloadUsers">Tentar de novo</button></div></div>`;
-  else body=`<div class="glass flush"><div class="tw"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Acessos liberados</th><th class="r">Ações</th></tr></thead><tbody>
+  else body=`<div class="glass flush"><div class="tw"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Unidade</th><th>Acessos liberados</th><th class="r">Ações</th></tr></thead><tbody>
    ${ui.users.map(u=>{const dir=u.papel==='dir',eu=u.email===session.email;
      return `<tr><td class="name"><span class="av">${esc((u.nome||'?')[0])}</span>${esc(u.nome)}${eu?' <span class="faint sm">(você)</span>':''}</td><td class="muted">${esc(u.email)}</td><td>${dir?'<span class="pill ok">Diretoria</span>':'<span class="pill">Gerência</span>'}</td>
-     <td>${dir?'<span class="muted sm">Acesso total</span>':((u.permissoes||[]).map(k=>`<span class="pill" style="margin:2px 4px 2px 0">${esc(lbl[k]||k)}</span>`).join('')||'<span class="faint sm">Nada liberado</span>')}</td>
+     <td class="muted">${dir?'Todas':esc(unNome(((u.permissoes||[]).find(k=>/^un:/.test(String(k)))||'un:PIR').slice(3)))}</td>
+     <td>${dir?'<span class="muted sm">Acesso total</span>':((u.permissoes||[]).filter(k=>!/^un:/.test(String(k))).map(k=>`<span class="pill" style="margin:2px 4px 2px 0">${esc(lbl[k]||k)}</span>`).join('')||'<span class="faint sm">Nada liberado</span>')}</td>
      <td class="r">${dir?'':`<button class="ib" aria-label="Editar ${esc(u.nome)}" title="Editar acessos" data-act="editUser" data-u="${esc(u.user_id)}">${ic('pencil')}</button>`}<button class="ib" aria-label="Trocar senha de ${esc(u.nome)}" title="Trocar senha" data-act="pwUser" data-u="${esc(u.user_id)}">${ic('key')}</button>${dir?'':`<button class="ib del" aria-label="Remover ${esc(u.nome)}" title="Remover usuário" data-act="delUser" data-u="${esc(u.user_id)}">${ic('trash')}</button>`}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">Nenhum usuário.</td></tr>'}</tbody></table></div></div>`;
   return `<div class="stack">${header('Controle de acesso','Crie usuários da gerência e escolha o que cada um pode ver e fazer',`<button class="btn primary" data-act="newUser">${ic('plus')}Novo usuário</button>`)}${body}
   <p class="sm faint">Cada pessoa entra com o próprio e-mail e senha. As permissões definem quais telas aparecem para o usuário. Para trocar a senha de alguém, use o ícone de chave.</p></div>`;
 };
 function formUser(u){
-  const sel=u?(Array.isArray(u.permissoes)?u.permissoes:[]):DEFAULT_GER;
+  const sel=u?(Array.isArray(u.permissoes)?u.permissoes:[]):DEFAULT_GER,unSel=((sel.find(k=>/^un:/.test(String(k)))||'un:'+unAtual()).slice(3));
   modal(u?'Editar usuário':'Novo usuário',`<label class="f">Nome<input name="nome" value="${esc(u?u.nome:'')}" required></label>
    <label class="f">E-mail (usado para entrar)<input type="email" name="email" value="${esc(u?u.email:'')}" ${u?'disabled':''} ${u?'':'required'} autocomplete="off"></label>
    ${u?'':'<label class="f">Senha inicial (mínimo 6 caracteres)<input type="text" name="senha" minlength="6" autocomplete="off" required></label>'}
+   <label class="f">Unidade deste usuário<select name="unid">${UNIDADES.map(([k,l])=>`<option value="${k}" ${k===unSel?'selected':''}>${l}</option>`).join('')}</select></label>
    <div><div class="sm muted" style="margin-bottom:8px">O que este usuário pode acessar</div><div class="stack" style="gap:8px">${PERMS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="perm" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>`,
    u?'Salvar':'Criar usuário',fd=>{
-    const nome=String(fd.get('nome')||'').trim(),perms=fd.getAll('perm').map(String);
+    const nome=String(fd.get('nome')||'').trim(),perms=fd.getAll('perm').map(String);perms.push('un:'+String(fd.get('unid')||'PIR'));
     if(!nome){toast('Informe o nome.');return false}
     let email='',senha='';
     if(!u){email=String(fd.get('email')||'').trim().toLowerCase();senha=String(fd.get('senha')||'');if(!email){toast('Informe o e-mail.');return false}if(senha.length<6){toast('A senha precisa ter pelo menos 6 caracteres.');return false}}

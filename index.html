@@ -745,7 +745,7 @@ const unNome=u=>u==='ALL'?'Todas as unidades':((UNIDADES.find(x=>x[0]===u)||[0,u
 function inView(c,d){if(!UCOLS.includes(c))return true;const v=unAtual();return c==='dash'?uOf(d)===v:(v==='ALL'||uOf(d)===v)}
 /* etapas com quantidade parcial */
 const parcSetores=()=>((S.cfg&&S.cfg.parcial)||['Cola','Montagem','Sola']).map(x=>String(x).toLowerCase());
-const isParc=e=>!!e&&!!e.setor&&parcSetores().includes(String(e.setor).toLowerCase());
+const isParc=e=>!!e&&(parcSetores().includes(String(e.setor||'').trim().toLowerCase())||parcSetores().includes(String(e.nome||'').trim().toLowerCase()));
 const brandHtml=sub=>`<div class="brand"><img src="${LOGO}" alt="Ritmus Dance"><b>Ritmus Dance</b><span>${sub}</span></div>`;
 
 function loginHtml(){

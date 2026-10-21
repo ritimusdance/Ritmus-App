@@ -155,7 +155,7 @@ input[type=date]{color-scheme:dark;width:auto}
 .ck.on{background:rgba(74,222,154,.18);border-color:rgba(74,222,154,.55);color:var(--ok)}
 .ck.lock{background:rgba(255,255,255,.07);border-color:var(--line);color:var(--fg-3);cursor:not-allowed;font-size:10.5px;letter-spacing:.02em}
 .ck.lock:hover{border-color:var(--line)}
-.ck.pq{font-size:11px;font-variant-numeric:tabular-nums}
+.ck.pq{font-size:11px;font-variant-numeric:tabular-nums;min-width:34px;width:auto;padding:0 5px}
 .ck.half{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.55);color:var(--warn)}
 .ck.rest{border-style:dashed;border-color:rgba(251,191,36,.5)}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
@@ -566,11 +566,12 @@ function curQ(fid,oid,eid){
   if(a.q)return Object.assign({},a.q);
   const o=osDe(oid),m={};a.sizes.forEach(n=>{m[n]=Number(o.grade[n])||0});return m;
 }
+function porQuem(o,eid,n,fid,dia){const m={};S.aps.forEach(a=>{if(a.oid===o.id&&a.eid===eid&&!(a.fid===fid&&a.d===dia)){const v=apQ(a,n,o);if(v>0){const nm=(funcDe(a.fid)||{}).nome||'?';m[nm]=(m[nm]||0)+v}}});return Object.entries(m).map(([k,v])=>k+': '+v).join(', ')}
 function othersQ(o,eid,n,fid,dia){let t=0;S.aps.forEach(a=>{if(a.oid===o.id&&a.eid===eid&&!(a.fid===fid&&a.d===dia))t+=apQ(a,n,o)});return t}
 function qPill(b,q){
   const rem=+b.dataset.rem,oth=+b.dataset.oth;b.dataset.cur=q;
   b.classList.remove('on','half','rest');
-  b.textContent=q>0?(q>=rem?'OK':String(q)):'';
+  b.textContent=q>0?String(q):(oth>0?'-'+rem:'');
   b.classList.add(...(q>0?(q>=rem?['on']:['half']):(oth>0?['rest']:[])));
 }
 function applyQ(fid,oid,eid,n,q){
@@ -587,6 +588,7 @@ function openQ(btn){
   const x=Math.max(8,Math.min(window.innerWidth-W-8,r.left+r.width/2-W/2));
   let y=r.bottom+8;if(y+H>window.innerHeight-8)y=Math.max(8,r.top-H-8);
   $('#pop').innerHTML=`<form class="note" id="qf" style="left:${x}px;top:${y}px" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" data-rem="${rem}"><div class="row between"><b>QUANTIDADE</b><span style="font-size:11px;color:#6b5a14">${esc(o.codigo)} · nº ${n} · falta ${rem}</span></div>
+   <div style="font-size:11px;color:#6b5a14">${esc(btn.title||'')}</div>
    <label>${esc(f.nome)} fez em ${br(gerDia())}<input name="qtd" type="number" min="0" max="${rem}" value="${cur||rem}" required></label>
    <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn g" data-act="qAll">Tudo (${rem})</button><button type="button" class="btn g" data-act="qClear">Limpar</button><button class="btn">Marcar</button></div>
    <span class="sm" style="font-size:11px;color:#6b5a14">${esc(e.nome)}: menos que ${rem} = concluiu parcialmente. Outra funcionária pode terminar o restante.</span></form>`;
@@ -612,11 +614,12 @@ V.ger=()=>{
     <tr class="qrow"><th class="st">Quantidade</th>${sizes.map(n=>{const lost=perdaOs(o.id,n);const left=Number(o.grade[n])-lost;return `<td><button class="qcell ${lost?'lost':''}" data-act="perda" data-o="${o.id}" data-n="${n}" title="${lost?`${lost} perdida(s). `:''}Toque para registrar perda">${left}</button></td>`}).join('')}</tr></thead>
     <tbody>${es.map(e=>{
       if(isParc(e)){const mq=curQ(f.id,o.id,e.id);
-        return `<tr><th class="st">${esc(e.nome)}<span class="faint" style="display:block;font-size:10.5px;font-weight:400">quantidade parcial</span></th>${sizes.map(n=>{
+        return `<tr><th class="st">${esc(e.nome)}<span class="faint" style="display:block;font-size:10.5px;font-weight:400">parcial · número = feito, -n = falta</span></th>${sizes.map(n=>{
           const Q=Math.max(0,(Number(o.grade[n])||0)-perdaOs(o.id,n)),oth=othersQ(o,e.id,n,f.id,t),rem=Math.max(0,Q-oth),mine=Math.min(mq[n]||0,rem);
-          if(rem===0&&!mine){const msg=`Concluído: ${Q} de ${Q} já feitos por outras funcionárias.`;return `<td><button type="button" class="ck lock" data-act="ck" data-msg="${esc(msg)}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">&#10003;</button></td>`}
-          const cls=mine>0?(mine>=rem?'on':'half'):(oth>0?'rest':''),txt=mine>0?(mine>=rem?'OK':mine):'';
-          const msg=`Total ${Q} · feito por outras: ${oth} · falta ${rem}${mine?` · ${f.nome}: ${mine}`:''}`;
+          if(rem===0&&!mine){const msg=`Concluído: ${Q} de ${Q}. Feito por ${porQuem(o,e.id,n,f.id,t)||'outras funcionárias'}.`;return `<td><button type="button" class="ck lock" data-act="ck" data-msg="${esc(msg)}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">&#10003;</button></td>`}
+          const cls=mine>0?(mine>=rem?'on':'half'):(oth>0?'rest':''),txt=mine>0?mine:(oth>0?'-'+rem:'');
+          const por=porQuem(o,e.id,n,f.id,t);
+          const msg=`Total ${Q}${por?' · feito por '+por:''} · falta ${rem}${mine?` · ${f.nome} marcou ${mine}${mine>=rem?' (completa)':''}`:''}`;
           return `<td><button class="ck pq ${cls}" data-act="ckq" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" data-rem="${rem}" data-oth="${oth}" data-cur="${mine}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">${txt}</button></td>`}).join('')}</tr>`}
       const cur=curSizes(f.id,o.id,e.id);return `<tr><th class="st">${esc(e.nome)}</th>${sizes.map(n=>{
       const L=lock[o.id+'|'+e.id+'|'+n];

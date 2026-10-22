@@ -67,13 +67,13 @@ svg.i{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.75;str
 .wd{position:relative;display:flex;min-width:0}.wd>.glass,.wd>.kpi{flex:1;min-width:0}
 .s-sm{grid-column:span 3}.s-md{grid-column:span 6}.s-lg{grid-column:span 12}
 @media (max-width:1180px){.s-sm{grid-column:span 6}.s-md{grid-column:span 12}}
-@media (max-width:560px){.s-sm{grid-column:span 12}}
+@media (max-width:560px){.s-sm{grid-column:span 6}}
 .editing .wd{padding-top:42px}
 .wctl{position:absolute;top:6px;right:8px;z-index:3;display:flex;gap:2px;padding:2px;border-radius:12px;background:rgba(9,9,11,.85);border:1px solid var(--line-2);backdrop-filter:blur(10px)}
 .editing .wd{cursor:grab;outline:1px dashed var(--line-2);outline-offset:4px;border-radius:22px}
 .editing .wd.dragover{outline-color:var(--coral);outline-style:solid}
 .qfab{position:fixed;right:20px;bottom:20px;z-index:62;box-shadow:0 14px 34px -8px rgba(199,67,117,.7);border-radius:999px;padding:12px 20px}
-.quick{position:fixed;right:20px;bottom:78px;z-index:62;width:min(340px,calc(100vw - 32px));max-height:calc(100vh - 110px);overflow-y:auto;background:#101014;border:1px solid var(--line-2);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.9)}
+.quick{position:fixed;left:max(16px,calc(50vw - 360px));bottom:84px;z-index:62;width:min(340px,calc(100vw - 32px));max-height:calc(100vh - 110px);overflow-y:auto;background:#101014;border:1px solid var(--line-2);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.9)}
 .g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
 textarea{resize:vertical}
 .g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
@@ -120,6 +120,9 @@ input[type=date]{color-scheme:dark;width:auto}
 .sizes input{text-align:center;padding:6px 4px}
 .per{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .dates{display:flex;gap:8px;align-items:center;color:var(--fg-3);font-size:12.5px}
+.per{min-width:0;max-width:100%}
+html,body{overflow-x:clip}
+.sheetm footer{flex-wrap:wrap}
 
 .vl{fill:var(--fg-2);font-size:10.5px;font-variant-numeric:tabular-nums}
 .chart svg{width:100%;height:auto;display:block;overflow:visible}
@@ -204,6 +207,14 @@ input[type=date]{color-scheme:dark;width:auto}
   .side .foot{margin-top:0;flex-direction:row;align-items:center;justify-content:space-between}
   .who{text-align:left}
   .main{padding-top:20px}
+  .per{flex:1 1 100%;width:100%;flex-direction:column;align-items:stretch}
+  .per>.seg{display:flex;flex-wrap:wrap;overflow:visible;border-radius:18px;width:100%;gap:4px}
+  .per>.seg button{flex:1 1 30%;justify-content:center;padding:8px 6px;font-size:12.5px}
+  .dates{flex-wrap:wrap;width:100%}.dates input{flex:1;min-width:130px}
+  .row.between{flex-wrap:wrap}
+  .g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .g3>:last-child:nth-child(odd),.g4>:last-child:nth-child(odd){grid-column:1/-1}
+  .kpi{padding:12px 14px}.kpi .v{font-size:22px}.kpi .l{font-size:12px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -327,10 +338,13 @@ function qtyAp(a){const o=osDe(a.oid);if(!o)return 0;return apKeys(a).reduce((s,
 function range(p,o){const t=today();
   if(p==='hoje')return[t,t];
   if(p==='ontem'){const y=addDays(t,-1);return[y,y]}
-  if(p==='semana')return[addDays(t,-6),t];
-  if(p==='quinzena')return[addDays(t,-14),t];
-  if(p==='mes')return[addDays(t,-29),t];
-  if(p==='ano')return[addDays(t,-364),t];
+  const wd=(new Date(t+'T12:00:00').getDay()+6)%7,m1=t.slice(0,8)+'01';
+  if(p==='semana')return[addDays(t,-wd),t];
+  if(p==='semprev'){const seg=addDays(t,-wd-7);return[seg,addDays(seg,6)]}
+  if(p==='quinzena')return[+t.slice(8)<=15?m1:t.slice(0,8)+'16',t];
+  if(p==='mes')return[m1,t];
+  if(p==='mesprev'){const f=addDays(m1,-1);return[f.slice(0,8)+'01',f]}
+  if(p==='ano')return[t.slice(0,4)+'-01-01',t];
   let de=o.de||t,ate=o.ate||t;if(de>ate)[de,ate]=[ate,de];return[de,ate]}
 const rng=k=>range(ui.per[k].p,ui.per[k]);
 function statsFunc(f,de,ate){
@@ -382,8 +396,9 @@ function hbars(items,color='var(--grad)'){
   return `<div class="hb">${items.map(([n,v])=>`<div class="r"><span class="t" title="${esc(n)}">${esc(n)}</span><div class="bar"><i style="width:${(v/m*100).toFixed(0)}%;background:${color}"></i></div><b class="num">${ni(v)}</b></div>`).join('')}</div>`;
 }
 const pctPill=(p)=>`<span class="pill ${p>=100?'ok':p>=70?'warn':'bad'}">${ni(p)}%</span>`;
-const periodBar=k=>{const o=ui.per[k];const L=[['hoje','Hoje'],['ontem','Ontem'],['semana','Semana'],['quinzena','Quinzena'],['mes','Mês'],['ano','Ano'],['custom','Personalizado']];
-  return `<div class="per"><div class="seg">${L.map(([v,l])=>`<button class="${o.p===v?'on':''}" data-act="per" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>${o.p==='custom'?`<div class="dates"><input type="date" aria-label="Data inicial" value="${o.de}" data-chg="perDate" data-k="${k}" data-f="de"><span>até</span><input type="date" aria-label="Data final" value="${o.ate}" data-chg="perDate" data-k="${k}" data-f="ate"></div>`:''}</div>`};
+const periodBar=k=>{const o=ui.per[k];const L=[['hoje','Hoje'],['ontem','Ontem'],['semana','Esta semana'],['semprev','Semana passada'],['quinzena','Quinzena'],['mes','Este mês'],['mesprev','Mês passado'],['ano','Este ano'],['custom','Personalizado']];
+  const [rd,ra]=rng(k);
+  return `<div class="per"><div class="seg">${L.map(([v,l])=>`<button class="${o.p===v?'on':''}" data-act="per" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div><span class="sm muted" style="white-space:nowrap">${rd===ra?br(rd):br(rd)+' a '+br(ra)}</span>${o.p==='custom'?`<div class="dates"><input type="date" aria-label="Data inicial" value="${o.de}" data-chg="perDate" data-k="${k}" data-f="de"><span>até</span><input type="date" aria-label="Data final" value="${o.ate}" data-chg="perDate" data-k="${k}" data-f="ate"></div>`:''}</div>`};
 const header=(t,sub,btn='')=>`<div class="head"><div><h2>${t}</h2>${sub?`<p>${sub}</p>`:''}</div>${btn}</div>`;
 
 /* ---------- Diretoria ---------- */
@@ -923,8 +938,8 @@ function updateTot(){
 }
 function quickInit(){
   const w=$('#modal .mwrap');if(!w)return;
-  w.insertAdjacentHTML('beforeend',`<button type="button" class="btn primary qfab" data-act="qkOpen">${ic('target')}Acesso rápido</button>
-   <div class="quick" id="qk" hidden role="dialog" aria-label="Acesso rápido"><div class="row between"><h3>Acesso rápido</h3><button type="button" class="ib" aria-label="Fechar acesso rápido" data-act="qkOpen">${ic('x')}</button></div>
+  const ft=$('#mf footer');if(ft)ft.insertAdjacentHTML('afterbegin',`<button type="button" class="btn primary qfab-in" data-act="qkOpen" style="margin-right:auto">${ic('target')}Acesso rápido</button>`);
+  w.insertAdjacentHTML('beforeend',`<div class="quick" id="qk" hidden role="dialog" aria-label="Acesso rápido"><div class="row between"><h3>Acesso rápido</h3><button type="button" class="ib" aria-label="Fechar acesso rápido" data-act="qkOpen">${ic('x')}</button></div>
    <p class="sm muted">Digite a quantidade, marque as numerações e aplique. Pode repetir com outras quantidades.</p>
    <label class="f">Quantidade<input id="qtdAll" type="number" min="0" placeholder="Ex: 100"></label>
    <div class="chips">${SIZES.slice().reverse().map(n=>`<button type="button" class="chip" data-act="szTog" data-n="${n}" aria-pressed="false">${n}</button>`).join('')}</div>

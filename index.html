@@ -1111,6 +1111,14 @@ const A={
     modal('Renomear unidade',`<label class="f">Nome da unidade<input name="nome" value="${esc(un[1])}" maxlength="30" required></label>`,'Salvar',fd=>{
       const n=String(fd.get('nome')||'').trim();if(!n)return false;
       S.cfg.unidades=unidades().map(x=>x[0]===d.id?[x[0],n]:x);commit('Unidade renomeada.',true)})},
+  delUn(d){const un=unidades().find(x=>x[0]===d.id);if(!un||d.id==='PIR')return;
+    const usados=['funcs','os','aps','perdas','avisos','faltas'].reduce((a,c)=>a+((S[c]||[]).filter(r=>uOf(r)===d.id).length),0);
+    const us=(ui.users||[]).filter(u=>tokUn(Array.isArray(u.permissoes)?u.permissoes:[]).includes(d.id));
+    if(usados){toast('A unidade "'+un[1]+'" já tem '+usados+' registros (funcionários, OS, lançamentos…). Só dá para excluir unidade vazia.');return}
+    if(us.length){toast('Ainda há usuários nessa unidade ('+us.map(u=>u.nome).join(', ')+'). Remova ou mude o acesso deles primeiro.');return}
+    confirmBox('Excluir a unidade <b>'+esc(un[1])+'</b>? Ela está vazia, nada será perdido.','Excluir',()=>{
+      S.cfg.unidades=unidades().filter(x=>x[0]!==d.id);if(unAtual()===d.id){ui.un='PIR';try{localStorage.setItem('ritmus-un','PIR')}catch(e){}}
+      commit('Unidade excluída.',true)})},
   qAll(){const i=$('#qf input[name=qtd]');if(i)i.value=i.max},
   qClear(){const f=$('#qf');if(!f)return;const d=f.dataset;applyQ(+d.f,+d.o,+d.e,+d.n,0);closePop()},
   gerOs(d){const id=+d.id,i=ui.gerOs.indexOf(id);if(i>=0)ui.gerOs.splice(i,1);else ui.gerOs.push(id);draw(true)},
@@ -1742,7 +1750,7 @@ function visUsers(){
 }
 function unidadesCard(){
   return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Unidades (cidades)</h3><span class="sm faint">cada unidade tem funcionários, OS, lançamentos e dashboard próprios</span></div>
-  <div class="chips">${unidades().map(([id,n])=>`<span class="chip">${esc(n)} <span class="faint sm">${esc(id)}</span> <button type="button" class="ib" aria-label="Renomear ${esc(n)}" data-act="renUn" data-id="${esc(id)}">${ic('pencil')}</button></span>`).join('')}</div>
+  <div class="chips">${unidades().map(([id,n])=>`<span class="chip">${esc(n)} <span class="faint sm">${esc(id)}</span> <button type="button" class="ib" aria-label="Renomear ${esc(n)}" data-act="renUn" data-id="${esc(id)}">${ic('pencil')}</button>${id==='PIR'?'':`<button type="button" class="ib del" aria-label="Excluir ${esc(n)}" title="Excluir unidade (só se estiver vazia)" data-act="delUn" data-id="${esc(id)}">${ic('trash')}</button>`}</span>`).join('')}</div>
   <form class="row" id="unf" style="flex-wrap:nowrap"><input name="nome" maxlength="30" placeholder="Nova cidade (ex: Rio de Janeiro)" aria-label="Nome da nova unidade" style="max-width:300px" required><button class="btn">${ic('plus')}Criar unidade</button></form>
   <p class="sm faint">Depois de criar a unidade, crie a gerência e a diretoria dela em "Novo usuário". Cada usuário só enxerga as unidades liberadas para ele.</p></div>`;
 }

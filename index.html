@@ -203,7 +203,8 @@ html,body{overflow-x:clip}
   .brand{flex-direction:row;justify-content:flex-start;text-align:left;gap:12px}
   .brand img{width:42px}
   .nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}
-  .nav button{white-space:nowrap;padding:8px 12px}
+  .nav button{white-space:nowrap;padding:8px 12px;flex:0 0 auto}
+  .side>label.f{width:100%}.side>label.f select{width:100%;min-width:0}
   .side .foot{margin-top:0;flex-direction:row;align-items:center;justify-content:space-between}
   .who{text-align:left}
   .main{padding-top:20px}
@@ -320,7 +321,7 @@ let S,session=null,ui={tab:'geral',relK:'desempenho',dashEdit:false,per:{},rankS
 let drafts={},qdrafts={};
 function initUi(){
   const w=()=>({p:'semana',de:addDays(today(),-6),ate:today()});
-  ui.per={setor:{p:'mes',de:addDays(today(),-29),ate:today()},rank:{p:'hoje',de:addDays(today(),-6),ate:today()},perdas:w(),rel:{p:'mes',de:addDays(today(),-29),ate:today()},faltas:{p:'mes',de:addDays(today(),-29),ate:today()},prod:{p:'mes',de:addDays(today(),-29),ate:today()}};
+  ui.per={desemp:{p:'mes',de:addDays(today(),-29),ate:today()},setor:{p:'mes',de:addDays(today(),-29),ate:today()},rank:{p:'hoje',de:addDays(today(),-6),ate:today()},perdas:w(),rel:{p:'mes',de:addDays(today(),-29),ate:today()},faltas:{p:'mes',de:addDays(today(),-29),ate:today()},prod:{p:'mes',de:addDays(today(),-29),ate:today()}};
 }
 let lastUid=0;const uid=()=>{let n=Date.now()*1000+Math.floor(Math.random()*1000);if(n<=lastUid)n=lastUid+1;lastUid=n;return n};
 const by=(arr,id)=>arr.find(x=>x.id===id);
@@ -484,13 +485,13 @@ V.prods=()=>`<div class="stack">${header('Produtos e etapas','Cada etapa vale po
   <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
   <div class="add-et"><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div>`}).join('')||'<div class="glass empty">Nenhum produto cadastrado.</div>'}</div></div>`;
 
-V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido',`<div class="row"><button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button><button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button><input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
+V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
  ${S.os.map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
   return `<tr><td><b>${esc(o.codigo)}</b>${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
   <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'&&p<100?'<span class="pill ok">Finalizada</span>':''}</div></td>
-  <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}"><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
-  <td class="r">${o.status!=='Concluída'?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>${session.role==='dir'?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div></div>`;
+  <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}" ${tool('osedit')?'':'disabled'}><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
+  <td class="r">${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${session.role==='dir'?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div></div>`;
 
 function osFrac(oid,eid,de,ate){const o=osDe(oid);const total=Object.values(o.grade).reduce((s,v)=>s+Number(v),0);if(!total)return 0;
   let d=0;Object.values(doneMap(o,eid,de,ate)).forEach(v=>d+=v);return d/total*100}
@@ -626,7 +627,7 @@ V.ger=()=>{
     const sizes=Object.keys(o.grade).filter(n=>Number(o.grade[n])>0).map(Number).sort((a,b)=>b-a);
     return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>${esc(o.codigo)} - ${esc(o.cliente)}</h3><span class="sm faint">${esc((prodDe(o.pid)||{}).nome)} · ${esc(o.cor)} · ${sizes[0]} a ${sizes[sizes.length-1]}</span></div>
     <div class="sheet-wrap"><table class="grade"><thead><tr><th class="st">Numeração</th>${sizes.map(n=>`<th>${n}</th>`).join('')}</tr>
-    <tr class="qrow"><th class="st">Quantidade</th>${sizes.map(n=>{const lost=perdaOs(o.id,n);const left=Number(o.grade[n])-lost;return `<td><button class="qcell ${lost?'lost':''}" data-act="perda" data-o="${o.id}" data-n="${n}" title="${lost?`${lost} perdida(s). `:''}Toque para registrar perda">${left}</button></td>`}).join('')}</tr></thead>
+    <tr class="qrow"><th class="st">Quantidade</th>${sizes.map(n=>{const lost=perdaOs(o.id,n);const left=Number(o.grade[n])-lost;return `<td><button class="qcell ${lost?'lost':''}" data-act="${tool('regperda')?'perda':'noop'}" data-o="${o.id}" data-n="${n}" title="${lost?`${lost} perdida(s). `:''}Toque para registrar perda">${left}</button></td>`}).join('')}</tr></thead>
     <tbody>${es.map(e=>{
       if(isParc(e)){const mq=curQ(f.id,o.id,e.id);
         return `<tr><th class="st">${esc(e.nome)}<span class="faint" style="display:block;font-size:10.5px;font-weight:400">parcial · número = feito, -n = falta</span></th>${sizes.map(n=>{
@@ -667,14 +668,14 @@ V.faltas=()=>{
   const m={};L.forEach(x=>{const n=(funcDe(x.fid)||{}).nome||'-';m[n]=(m[n]||0)+1});
   const rk=Object.entries(m).sort((a,b)=>b[1]-a[1]);
   const hoje=S.faltas.filter(x=>x.d===t);
-  return `<div class="stack">${header('Presença e faltas','Registre quem não veio à empresa e acompanhe por período',`<button class="btn primary" data-act="newFalta">${ic('plus')}Registrar falta</button>`)}
+  return `<div class="stack">${header('Presença e faltas','Registre quem não veio à empresa e acompanhe por período',(tool('regfalta')?`<button class="btn primary" data-act="newFalta">${ic('plus')}Registrar falta</button>`:''))}
   <div class="grid g3"><div class="kpi"><span class="l">${ic('cal')}Ausentes hoje</span><span class="v">${hoje.length}</span><span class="s">${hoje.map(x=>esc((funcDe(x.fid)||{}).nome)).join(', ')||'ninguém'}</span></div>
    <div class="kpi"><span class="l">${ic('alert')}Faltas no período</span><span class="v">${L.length}</span><span class="s">${br(de)} a ${br(ate)}</span></div>
    <div class="kpi"><span class="l">${ic('users')}Mais faltas</span><span class="v" style="font-size:24px">${rk.length?esc(rk[0][0]):'-'}</span><span class="s">${rk.length?rk[0][1]+' falta(s)':'sem faltas no período'}</span></div></div>
   <div class="glass row between">${periodBar('faltas')}</div>
   <div class="glass stack" style="gap:12px"><h3>Faltas por funcionário</h3>${hbars(rk,'var(--bad)')}</div>
   <div class="glass flush"><div style="padding:18px 20px 6px"><h3>Registros</h3></div><div class="tw"><table><thead><tr><th>Data</th><th>Funcionário</th><th>Motivo</th><th>Observação</th><th>Registrado por</th><th class="r"></th></tr></thead><tbody>
-  ${L.map(x=>`<tr><td class="num muted">${dow(x.d)} ${br(x.d)}</td><td><b>${esc((funcDe(x.fid)||{}).nome||'-')}</b></td><td>${esc(x.motivo)}</td><td class="muted">${esc(x.obs||'-')}</td><td class="muted">${esc(x.autor)}</td><td class="r"><button class="ib del" aria-label="Remover registro" data-act="delFalta" data-id="${x.id}">${ic('trash')}</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Nenhuma falta registrada no período.</td></tr>'}</tbody></table></div></div></div>`;
+  ${L.map(x=>`<tr><td class="num muted">${dow(x.d)} ${br(x.d)}</td><td><b>${esc((funcDe(x.fid)||{}).nome||'-')}</b></td><td>${esc(x.motivo)}</td><td class="muted">${esc(x.obs||'-')}</td><td class="muted">${esc(x.autor)}</td><td class="r">${tool('regfalta')?`<button class="ib del" aria-label="Remover registro" data-act="delFalta" data-id="${x.id}">${ic('trash')}</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Nenhuma falta registrada no período.</td></tr>'}</tbody></table></div></div></div>`;
 };
 
 /* ---------- Avisos ---------- */
@@ -749,43 +750,57 @@ async function exportRep(f){
 
 /* ---------- casca, login, modais ---------- */
 let modalOk=null,toastT=null;
-const TABS_DIR=[['geral','Visão geral','grid'],['funcs','Funcionários','users'],['prods','Produtos e etapas','package'],['os','Fichas e OS','clip'],['prod','Produção e análise','bars'],['rank','Ranking','trophy'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download'],['usuarios','Controle de acesso','shield']];
-const TABS_GER_ALL=[['ger','Lançamento do dia','clip'],['os','Fichas e OS','package'],['rank','Ranking','trophy'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download']];
-const PERMS=[['ger','Lançamento do dia'],['retro','Lançar em dias anteriores'],['os','Fichas e OS'],['rank','Ranking'],['setor','Análise por setor'],['perdas','Perdas'],['faltas','Presença e faltas'],['avisos','Avisos'],['relat','Relatórios']];
+const TABS_DIR=[['geral','Visão geral','grid'],['funcs','Funcionários','users'],['prods','Produtos e etapas','package'],['os','Fichas e OS','clip'],['prod','Produção e análise','bars'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download'],['usuarios','Controle de acesso','shield']];
+const TABS_GER_ALL=[['ger','Lançamento do dia','clip'],['os','Fichas e OS','package'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download']];
+const PERMS=[['ger','Lançamento do dia'],['retro','Lançar em dias anteriores'],['os','Fichas e OS'],['rank','Ranking'],['desemp','Desempenho individual (por colaborador)'],['setor','Análise por setor'],['perdas','Perdas'],['faltas','Presença e faltas'],['avisos','Avisos'],['relat','Relatórios']];
 const DEFAULT_GER=['ger','retro','os','rank','setor','faltas','avisos'];
-const can=k=>!!session&&(session.role==='dir'||(session.perms||[]).includes(k));
+const TOOLS=[['osnew','Criar nova OS'],['osedit','Editar e finalizar OS'],['osio','Importar e baixar planilhas de OS'],['regperda','Registrar perdas'],['regfalta','Registrar e apagar faltas']];
+const hiddenAll=()=>((S.cfg&&S.cfg.gerOcultas)||[]);
+const isDir=()=>!!session&&session.role==='dir';
+const can=k=>!!session&&(session.role==='dir'||((session.perms||[]).includes(k)&&!hiddenAll().includes(k)));
+const tool=k=>isDir()||(!!session&&!hiddenAll().includes(k)&&!(session.perms||[]).includes('no:'+k));
+const tokUn=p=>(Array.isArray(p)?p:[]).filter(x=>/^un:/.test(String(x))).map(x=>String(x).slice(3));
+const eMaster=()=>isDir()&&!tokUn(session.perms).length;
+const eAdm=()=>eMaster()||(isDir()&&(session.perms||[]).includes('adm'));
 /* ---------- unidades (Piracaia e São Paulo) ---------- */
-const UNIDADES=[['PIR','Piracaia'],['SP','São Paulo']];
+const unidades=()=>(S.cfg&&Array.isArray(S.cfg.unidades)&&S.cfg.unidades.length)?S.cfg.unidades:[['PIR','Piracaia'],['SP','São Paulo']];
+const unPermitidas=()=>{if(!session)return[];if(session.role==='ger')return[session.un||'PIR'];const t=tokUn(session.perms);return t.length?t:unidades().map(x=>x[0])};
 const UCOLS=['funcs','os','aps','perdas','avisos','faltas','dash'];
 const uOf=d=>(d&&d.u)||'PIR';
 const unAtual=()=>ui.un||'PIR';
-const unNome=u=>u==='ALL'?'Todas as unidades':((UNIDADES.find(x=>x[0]===u)||[0,u])[1]);
-function inView(c,d){if(!UCOLS.includes(c))return true;const v=unAtual();return c==='dash'?uOf(d)===v:(v==='ALL'||uOf(d)===v)}
+const unNome=u=>u==='ALL'?'Todas as unidades':((unidades().find(x=>x[0]===u)||[0,u])[1]);
+function inView(c,d){if(!UCOLS.includes(c))return true;const v=unAtual();if(c==='dash')return uOf(d)===v;return v==='ALL'?unPermitidas().includes(uOf(d)):uOf(d)===v}
 /* etapas com quantidade parcial */
 const parcSetores=()=>((S.cfg&&S.cfg.parcial)||['Cola','Montagem','Sola']).map(x=>String(x).toLowerCase());
 const isParc=e=>!!e&&(parcSetores().includes(String(e.setor||'').trim().toLowerCase())||parcSetores().includes(String(e.nome||'').trim().toLowerCase()));
 const brandHtml=sub=>`<div class="brand"><img src="${LOGO}" alt="Ritmus Dance"><b>Ritmus Dance</b><span>${sub}</span></div>`;
 
+const ATK='ritmus-atalhos';
+const getAtalhos=()=>{try{const a=JSON.parse(localStorage.getItem(ATK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
+const setAtalhos=a=>{try{localStorage.setItem(ATK,JSON.stringify(a))}catch(e){}};
 function loginHtml(){
-  let last='';try{last=localStorage.getItem('ritmus-email')||''}catch(e){}
-  const em=ui.login.email!=null?ui.login.email:last;
+  const at=getAtalhos();
+  const em=ui.login.email!=null?ui.login.email:'';
   return `<div class="login"><div class="box">${brandHtml('Produção')}
+   ${at.length?`<div class="glass stack" style="gap:10px"><div class="row between"><b class="sm">Logins salvos neste aparelho</b><button type="button" class="btn sm" data-act="limpaAtalhos">Esquecer todos</button></div>
+    <div class="stack" style="gap:8px">${at.map(a=>`<div class="row" style="gap:8px;flex-wrap:nowrap"><button type="button" class="role" data-act="atalho" data-e="${esc(a.email)}"><span class="ic">${ic(a.papel==='dir'?'shield':'user')}</span><span><b>${esc(a.nome||a.email)}</b><span class="faint sm">${a.papel==='dir'?'Diretoria':'Gerência'}${a.un?' · '+esc(unNome(a.un)):''}</span></span></button><button type="button" class="ib del" aria-label="Remover login salvo de ${esc(a.nome||a.email)}" data-act="delAtalho" data-e="${esc(a.email)}">${ic('x')}</button></div>`).join('')}</div></div>`:''}
    <form id="lgf" class="glass stack" style="gap:14px">
     <label class="f">E-mail<input type="email" name="email" value="${esc(em)}" autocomplete="username" required></label>
     <label class="f">Senha<input type="password" name="pw" autocomplete="current-password" required></label>
+    <label class="row" style="gap:10px"><input type="checkbox" name="save" style="width:auto"> Salvar este login neste aparelho</label>
     ${ui.login.err?`<div class="sm" style="color:var(--bad)">${esc(ui.login.err)}</div>`:''}
     <div class="row"><button class="btn primary">Entrar</button></div>
-    <div class="row sm" style="gap:8px"><span class="faint">Atalho:</span><button type="button" class="btn sm" data-act="fillEmail" data-r="dir">Diretoria</button><button type="button" class="btn sm" data-act="fillEmail" data-r="ger">Gerência</button></div>
-    <p class="sm faint">Use o e-mail e a senha criados para você pela Diretoria.</p></form></div></div>`;
+    <p class="sm faint">Só o e-mail e o nome ficam guardados neste aparelho, nunca a senha. Os logins salvos não aparecem em outros aparelhos.</p></form></div></div>`;
 }
 
 function shellHtml(){
-  const dir=session.role==='dir',tabs=dir?TABS_DIR:TABS_GER_ALL.filter(t=>can(t[0]));
+  const dir=session.role==='dir',tabs=dir?TABS_DIR.filter(t=>!['prods','usuarios'].includes(t[0])||eAdm()):TABS_GER_ALL.filter(t=>can(t[0]));
   const nome=meuNome();
   if(tabs.length&&!tabs.some(t=>t[0]===ui.tab))ui.tab=tabs[0][0];
   const view=tabs.length?(V[ui.tab]||V.geral)():`<div class="stack">${header('Sem acesso','')}<div class="glass empty">Seu usuário ainda não tem nenhuma tela liberada. Fale com a Diretoria.</div></div>`;
-  const unSel=dir?`<div class="seg" role="group" aria-label="Unidade">${[['PIR','Piracaia'],['SP','SP'],['ALL','Todas']].map(([u,l])=>`<button class="${unAtual()===u?'on':''}" data-act="unit" data-u="${u}">${l}</button>`).join('')}</div>`:`<div class="sm muted" style="padding:0 4px">Unidade: <b>${esc(unNome(unAtual()))}</b></div>`;
-  const faixa=dir&&unAtual()==='ALL'?`<div class="pill warn" style="align-self:flex-start;margin-bottom:14px">Vendo todas as unidades juntas. Para cadastrar ou lançar, escolha Piracaia ou SP no menu.</div>`:'';
+  const permU=unPermitidas();
+  const unSel=dir&&(permU.length>1)?`<label class="f" style="gap:4px"><span class="sm muted">Unidade</span><select data-chg="unitSel" aria-label="Unidade">${[...(permU.length>1?[['ALL','Todas as unidades']]:[]),...unidades().filter(x=>permU.includes(x[0]))].map(([u,l])=>`<option value="${esc(u)}" ${unAtual()===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:`<div class="sm muted" style="padding:0 4px">Unidade: <b>${esc(dir&&!tokUn(session.perms).length?'Todas':unNome(unAtual()))}</b></div>`;
+  const faixa=dir&&unAtual()==='ALL'?`<div class="pill warn" style="align-self:flex-start;margin-bottom:14px">Vendo todas as unidades juntas. Para cadastrar ou lançar, escolha uma unidade no menu.</div>`:'';
   return `<div class="app"><aside class="side">${brandHtml('Produção')}${unSel}
    <nav class="nav" aria-label="Menu">${tabs.map(([k,l,i])=>`<button class="${ui.tab===k?'on':''}" data-act="tab" data-k="${k}">${ic(i)}${l}${k==='avisos'&&avPend(session.role)?`<span class="pill bad" style="margin-left:auto">${avPend(session.role)}</span>`:''}</button>`).join('')}</nav>
    <div class="foot"><div class="who">${dir?'Diretoria':'Gerência'}: <strong>${esc(nome)}</strong></div><button class="btn" data-act="logout">${ic('out')}Sair</button></div></aside>
@@ -794,9 +809,15 @@ function shellHtml(){
 
 function draw(keepScroll){
   const y=window.scrollY;
+  const nv0=document.querySelector('.nav');const nx=nv0?nv0.scrollLeft:(ui.navX||0);
   closePop();
   $('#root').innerHTML=session?shellHtml():loginHtml();
   if(keepScroll)window.scrollTo(0,y);
+  const n2=document.querySelector('.nav');
+  if(n2){n2.scrollLeft=nx;const on=n2.querySelector('button.on');
+    if(on){const r=on.getBoundingClientRect(),nr=n2.getBoundingClientRect();
+      if(r.left<nr.left)n2.scrollLeft+=r.left-nr.left-12;else if(r.right>nr.right)n2.scrollLeft+=r.right-nr.right+12}
+    ui.navX=n2.scrollLeft}
 }
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
@@ -897,7 +918,7 @@ function formOs(id){
    <label class="f">Cor<input name="cor" data-live placeholder="Ex: Rosa" value="${esc(o?o.cor:'')}" required></label>
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${nextNum}" required></label></div>
    <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o?o.cliente:'')}" required></label>
-   ${o?'':`<label class="f">Unidade da OS<select name="un">${UNIDADES.map(([u,l])=>`<option value="${u}" ${u===unAtual()?'selected':''}>${l}</option>`).join('')}</select></label>`}
+   ${o?'':`<label class="f">Unidade da OS<select name="un">${unidades().map(([u,l])=>`<option value="${esc(u)}" ${u===unAtual()?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`}
     <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(!o||!o.setores||!o.setores.length||o.setores.includes(st))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div><p class="sm faint" style="margin-top:6px">Só as etapas desses setores contam no progresso e aparecem para o gerente. Etapas sem setor (definido em Produtos e etapas) aparecem sempre. Você pode finalizar a OS a qualquer momento.</p></div>
    <div class="row between"><span class="muted sm">Código da OS</span><b id="codeprev" style="font-size:18px;letter-spacing:.04em">${codeOs(pid0,o?o.cor:'',nextNum)}</b></div>
    <div class="row between"><span class="muted sm">Total da grade</span><b id="gradeTot"></b></div>
@@ -1086,6 +1107,10 @@ const A={
     drafts[k]=arr;el.classList.toggle('on',i<0);
   },
   ckq(d,el){openQ(el)},
+  renUn(d){const un=unidades().find(x=>x[0]===d.id);if(!un)return;
+    modal('Renomear unidade',`<label class="f">Nome da unidade<input name="nome" value="${esc(un[1])}" maxlength="30" required></label>`,'Salvar',fd=>{
+      const n=String(fd.get('nome')||'').trim();if(!n)return false;
+      S.cfg.unidades=unidades().map(x=>x[0]===d.id?[x[0],n]:x);commit('Unidade renomeada.',true)})},
   qAll(){const i=$('#qf input[name=qtd]');if(i)i.value=i.max},
   qClear(){const f=$('#qf');if(!f)return;const d=f.dataset;applyQ(+d.f,+d.o,+d.e,+d.n,0);closePop()},
   gerOs(d){const id=+d.id,i=ui.gerOs.indexOf(id);if(i>=0)ui.gerOs.splice(i,1);else ui.gerOs.push(id);draw(true)},
@@ -1120,10 +1145,21 @@ document.addEventListener('input',e=>{
 document.addEventListener('submit',e=>{
   const f=e.target;e.preventDefault();
   if(f.id==='mf'){if(modalOk){const r=modalOk(new FormData(f));if(r!==false)closeModal()}}
-  else if(f.id==='lgf'){const d=new FormData(f);dbLogin(String(d.get('email')||'').trim(),String(d.get('pw')||''))}
+  else if(f.id==='lgf'){const d=new FormData(f);dbLogin(String(d.get('email')||'').trim(),String(d.get('pw')||''),d.get('save')==='on')}
+  else if(f.id==='unf'){
+    const nome=String(new FormData(f).get('nome')||'').trim();if(!nome)return;
+    if(unidades().some(x=>x[1].toLowerCase()===nome.toLowerCase())){toast('Já existe uma unidade com esse nome.');return}
+    let base=nome.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5)||'UN',id=base,n=2;
+    while(unidades().some(x=>x[0]===id)){id=base+n;n++}
+    S.cfg.unidades=[...unidades(),[id,nome]];commit('Unidade "'+nome+'" criada.',true);
+  }
+  else if(f.id==='tlf'){
+    const vis=new Set(new FormData(f).getAll('vis').map(String));
+    S.cfg.gerOcultas=ferrItems().map(x=>x[0]).filter(k=>!vis.has(k));commit('Ferramentas da gerência atualizadas.',true);
+  }
   else if(f.id==='qf'){const d=f.dataset;applyQ(+d.f,+d.o,+d.e,+d.n,Math.max(0,Math.min(+d.rem,parseInt(new FormData(f).get('qtd'))||0)));closePop()}
   else if(f.id==='avf'){
-    if(unAtual()==='ALL'){toast('Escolha Piracaia ou SP no menu para enviar mensagens.');return}
+    if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para enviar mensagens.');return}
     const d=new FormData(f),texto=String(d.get('texto')||'').trim();if(!texto){toast('Escreva a mensagem.');return}
     const me=session.role,ag=new Date();
     S.avisos.push({id:uid(),d:today(),h:pad(ag.getHours())+':'+pad(ag.getMinutes()),texto,urgente:d.get('urgente')==='on',de:me,autor:meuNome(),lido:false});
@@ -1411,6 +1447,7 @@ function msgScreen(t,sub,btn){
   $('#root').innerHTML=`<div class="login"><div class="box">${brandHtml('Produção')}<div class="glass stack" style="gap:12px"><h3>${t}</h3><p class="muted">${sub}</p>${btn||''}</div></div></div>`;
 }
 async function enter(){
+  ui.navX=0;
   let acc=null;
   try{const r=await sb.rpc('meu_acesso');if(!r.error&&r.data&&r.data.papel)acc=r.data}catch(e){}
   if(!acc){
@@ -1418,14 +1455,15 @@ async function enter(){
     if(error||!role){await sb.auth.signOut();session=null;ui.login={err:'Este usuário não tem acesso ao sistema.'};await fetchNames();draw();return false}
     acc={papel:role,nome:null,permissoes:null};
   }
-  {const pa=Array.isArray(acc.permissoes)?acc.permissoes:[];let v='PIR';
-   if(acc.papel==='dir'){try{v=localStorage.getItem('ritmus-un')||'PIR'}catch(e){}if(!['PIR','SP','ALL'].includes(v))v='PIR'}
-   else{const t=pa.find(p=>/^un:/.test(String(p)));v=t?String(t).slice(3):'PIR';if(!UNIDADES.some(x=>x[0]===v))v='PIR'}
+  const role=acc.papel,pa=Array.isArray(acc.permissoes)?acc.permissoes:null,toks=tokUn(pa);
+  {let v='PIR';
+   if(role==='dir'){try{v=localStorage.getItem('ritmus-un')||'PIR'}catch(e){}
+     if(toks.length){if(v==='ALL'?toks.length<2:!toks.includes(v))v=toks[0]}else if(!/^(ALL|[A-Z0-9]{2,8})$/.test(v))v='PIR'}
+   else v=toks[0]||'PIR';
    ui.un=v}
+  session={role,un:ui.un,nome:acc.nome||null,email:acc.email||'',perms:pa||(role==='dir'?[]:DEFAULT_GER.slice())};
   msgScreen('Carregando…','Buscando os dados da empresa.');
   const {init}=await loadAll(true);
-  const role=acc.papel;
-  session={role,un:ui.un,nome:acc.nome||null,email:acc.email||'',perms:role==='dir'?null:(Array.isArray(acc.permissoes)?acc.permissoes:DEFAULT_GER.slice())};
   const first=TABS_GER_ALL.find(t=>can(t[0]));
   ui.tab=role==='dir'?'geral':(first?first[0]:'avisos');
   ui.login={err:''};ui.gerD=null;ui.users=null;ui.usersErr='';
@@ -1441,13 +1479,14 @@ async function enter(){
   ensureDash();
   subscribe();draw();window.scrollTo(0,0);return true;
 }
-async function dbLogin(email,pw){
+async function dbLogin(email,pw,save){
   ui.login.email=email;
   const {error}=await sb.auth.signInWithPassword({email,password:pw});
   if(error){ui.login.err='E-mail ou senha incorretos.';draw();return}
-  try{localStorage.setItem('ritmus-email',email)}catch(e){}
   ui.login.err='';
   await enter();
+  if(session){const at=getAtalhos(),i=at.findIndex(a=>a.email===email);
+    if(save||i>=0){const it={email,nome:meuNome(),papel:session.role,un:session.role==='ger'?session.un:(tokUn(session.perms)[0]||'')};if(i>=0)at[i]=it;else at.push(it);setAtalhos(at)}}
 }
 async function signOutAll(){
   clearTimeout(flushT);
@@ -1459,7 +1498,7 @@ async function signOutAll(){
 A.logout=()=>{signOutAll()};
 function ensureDash(){if(session&&session.role==='dir'&&!S.dash.length){S.dash=defaultDash(uid);persist()}}
 A.unit=async d=>{
-  if(!session||session.role!=='dir'||ui.un===d.u||!['PIR','SP','ALL'].includes(d.u))return;
+  if(!session||session.role!=='dir'||ui.un===d.u||!(d.u==='ALL'||unPermitidas().includes(d.u)))return;
   clearTimeout(flushT);await flush();
   ui.un=d.u;try{localStorage.setItem('ritmus-un',d.u)}catch(e){}
   drafts={};qdrafts={};ui.gerOs=null;ui.gerF=null;ui.rankSel=null;ui.prod={os:null,cmp:false,os2:null};
@@ -1467,7 +1506,7 @@ A.unit=async d=>{
   try{await loadAll(true);ensureDash()}catch(e){toast('Não consegui carregar essa unidade.')}
   draw();window.scrollTo(0,0);
 };
-['newFunc','newOs','newFalta','osImport'].forEach(k=>{const f0=A[k];if(typeof f0==='function')A[k]=function(...a){if(session&&unAtual()==='ALL'){toast('Escolha Piracaia ou SP no menu para cadastrar.');return}return f0.apply(this,a)}});
+['newFunc','newOs','newFalta','osImport'].forEach(k=>{const f0=A[k];if(typeof f0==='function')A[k]=function(...a){if(session&&unAtual()==='ALL'){toast('Escolha uma unidade no menu para cadastrar.');return}return f0.apply(this,a)}});
 async function criarOsOutraUnidade(rec,dest){
   try{
     const {data,error}=await sb.from('registros').select('dados').eq('colecao','os');if(error)throw error;
@@ -1481,6 +1520,9 @@ async function criarOsOutraUnidade(rec,dest){
   }catch(e){toast('Não consegui criar a OS na outra unidade: '+((e&&e.message)||'erro'))}
 }
 A.backRole=()=>{ui.login={err:''};draw()};
+A.atalho=d=>{const i=$('#lgf [name=email]');if(!i)return;i.value=d.e||'';const p=$('#lgf [name=pw]');if(p)p.focus()};
+A.delAtalho=d=>{setAtalhos(getAtalhos().filter(a=>a.email!==d.e));draw()};
+A.limpaAtalhos=()=>{setAtalhos([]);draw()};
 A.fillEmail=d=>{const i=$('#lgf [name=email]');if(!i)return;i.value=(d.r==='dir'?CFG.EMAIL_DIRETORIA:CFG.EMAIL_GERENTE)||'';const p=$('#lgf [name=pw]');if(p)p.focus()};
 {const _tab=A.tab;A.tab=d=>{if(d.k==='ger'&&ui.tab!=='ger')ui.gerD=null;_tab(d);if(d.k==='usuarios')loadUsers()}}
 Object.assign(A,{
@@ -1494,9 +1536,172 @@ Object.assign(A,{
   reloadUsers(){loadUsers()}
 });
 Object.assign(C,{
+  unitSel(el){A.unit({u:el.value})},
+  papelSel(el){const g=$('#blkGer'),d=$('#blkDir');if(g)g.hidden=el.value==='dir';if(d)d.hidden=el.value!=='dir'},
   gerD(el){const v=el.value;if(!v||v>today()){toast('Escolha uma data até hoje.');draw(true);return}ui.gerD=v===today()?null:v;draw(true)},
   osRange(){osRangeRefresh()}
 });
+
+/* ---------- Desempenho individual e em grupo ---------- */
+const diasEntre=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5)+1;
+function perfData(f,de,ate){
+  const dias={};const get=d=>dias[d]||(dias[d]={d,pts:0,pec:0,perd:0,falta:null});
+  const et={};
+  S.aps.forEach(a=>{if(a.fid!==f.id||a.d<de||a.d>ate)return;const x=get(a.d),p=ptsAp(a),q=qtyAp(a);x.pts+=p;x.pec+=q;
+    const nm=(etapaDe(a.eid)||{}).nome||'-',y=et[nm]||(et[nm]={nome:nm,pts:0,pec:0});y.pts+=p;y.pec+=q});
+  S.perdas.forEach(p=>{if(p.fid===f.id&&p.d>=de&&p.d<=ate)get(p.d).perd+=p.qtd});
+  S.faltas.forEach(x=>{if(x.fid===f.id&&x.d>=de&&x.d<=ate)get(x.d).falta=x.motivo});
+  const L=Object.values(dias).sort((a,b)=>a.d<b.d?-1:1),trab=L.filter(x=>x.pts>0||x.pec>0);
+  const pts=L.reduce((s,x)=>s+x.pts,0),pec=L.reduce((s,x)=>s+x.pec,0),perd=L.reduce((s,x)=>s+x.perd,0),nd=trab.length;
+  const meta=Number(f.meta)||0,metaTot=meta*nd;
+  return{f,de,ate,L,trab,pts,pec,perd,nd,taxa:pec+perd?perd/(pec+perd)*100:0,faltas:L.filter(x=>x.falta),meta,pm:metaTot?pts/metaTot*100:null,pd:nd?pts/nd:0,
+    melhor:trab.slice().sort((a,b)=>b.pts-a.pts)[0],pior:trab.slice().sort((a,b)=>a.pts-b.pts)[0],etapas:Object.values(et).sort((a,b)=>b.pts-a.pts)};
+}
+function perfCtx(de,ate){
+  const act=S.funcs.filter(f=>f.ativo),len=diasEntre(de,ate),pde=addDays(de,-len),pate=addDays(de,-1);
+  const cur=act.map(f=>perfData(f,de,ate)),rk=cur.slice().sort((a,b)=>b.pts-a.pts||b.pec-a.pec);
+  const pos={};rk.forEach((r,i)=>{pos[r.f.id]=i+1});
+  const comDados=cur.filter(r=>r.nd>0);
+  const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
+  const geralPd=mean(comDados.map(r=>r.pd)),tot=comDados.reduce((s,r)=>s+r.pec+r.perd,0),taxaGeral=tot?comDados.reduce((s,r)=>s+r.perd,0)/tot*100:0;
+  const setorPd={};comDados.forEach(r=>{(setorPd[r.f.setor]=setorPd[r.f.setor]||[]).push(r.pd)});Object.keys(setorPd).forEach(k=>{setorPd[k]=mean(setorPd[k])});
+  return{pos,total:act.length,geralPd,taxaGeral,setorPd,pde,pate};
+}
+function destaques(P,C){
+  const bons=[],melh=[];
+  if(P.nd===0){melh.push('Sem lançamentos de produção neste período.');if(P.faltas.length)melh.push(P.faltas.length+' falta(s) registrada(s).');return{bons,melh}}
+  if(P.pm!=null){
+    if(P.pm>=100)bons.push('Atingiu '+ni(P.pm)+'% da meta: média de '+nf(P.pd)+' pontos por dia trabalhado (meta '+ni(P.meta)+').');
+    else if(P.pm>=80)bons.push('Ficou perto da meta: '+ni(P.pm)+'% ('+nf(P.pd)+' pontos por dia, meta '+ni(P.meta)+').');
+    else melh.push('Abaixo da meta: '+ni(P.pm)+'% ('+nf(P.pd)+' pontos por dia, meta '+ni(P.meta)+').');
+  }
+  const sp=C.setorPd[P.f.setor]||0;
+  if(sp>0&&P.pd>=sp*1.05)bons.push('Acima da média do setor '+P.f.setor+': '+nf(P.pd)+' contra '+nf(sp)+' pontos por dia.');
+  else if(sp>0&&P.pd<=sp*0.9)melh.push('Abaixo da média do setor '+P.f.setor+': '+nf(P.pd)+' contra '+nf(sp)+' pontos por dia.');
+  if(P.pec+P.perd>0){
+    if(P.perd===0)bons.push('Nenhuma perda registrada no período.');
+    else if(P.taxa<=C.taxaGeral*0.7)bons.push('Perdas abaixo da média da equipe: '+nf(P.taxa)+'% contra '+nf(C.taxaGeral)+'%.');
+    else if(P.taxa>=C.taxaGeral*1.3&&P.perd>=2)melh.push('Perdas acima da média da equipe: '+nf(P.taxa)+'% ('+P.perd+' peças) contra '+nf(C.taxaGeral)+'%.');
+  }
+  if(!P.faltas.length)bons.push('Nenhuma falta no período.');
+  else if(P.faltas.length>=2)melh.push(P.faltas.length+' faltas no período ('+[...new Set(P.faltas.map(x=>x.falta))].join(', ')+').');
+  if(P.prev&&P.prev.nd>0&&P.prev.pd>0){
+    const v=(P.pd/P.prev.pd-1)*100;
+    if(v>=10)bons.push('Evoluiu '+ni(v)+'% em relação ao período anterior ('+nf(P.prev.pd)+' para '+nf(P.pd)+' pontos por dia).');
+    else if(v<=-10)melh.push('Caiu '+ni(-v)+'% em relação ao período anterior ('+nf(P.prev.pd)+' para '+nf(P.pd)+' pontos por dia).');
+  }
+  if(P.nd>=4){
+    const v=P.trab.map(x=>x.pts),m=v.reduce((s,x)=>s+x,0)/v.length,sd=Math.sqrt(v.reduce((s,x)=>s+(x-m)*(x-m),0)/v.length),cv=m?sd/m:0;
+    if(cv>0.5)melh.push('Produção irregular entre os dias: melhor dia '+nf(P.melhor.pts)+' pontos ('+br(P.melhor.d)+'), pior dia '+nf(P.pior.pts)+' pontos ('+br(P.pior.d)+').');
+    else if(cv<0.25)bons.push('Produção regular ao longo dos dias.');
+  }
+  if(P.etapas.length)bons.push('Etapa em que mais rendeu: '+P.etapas[0].nome+' ('+nf(P.etapas[0].pts)+' pontos).');
+  return{bons,melh};
+}
+function desempSel(){
+  const all=S.funcs.filter(f=>f.ativo);
+  if(!ui.dsel||!ui.dsel.length)return all;
+  return all.filter(f=>ui.dsel.includes(f.id));
+}
+function desempCompleto(){
+  const [de,ate]=rng('desemp'),C=perfCtx(de,ate),sel=desempSel();
+  return{de,ate,C,L:sel.map(f=>{const P=perfData(f,de,ate);P.prev=perfData(f,C.pde,C.pate);P.pos=C.pos[f.id];P.dest=destaques(P,C);P.vsPrev=P.prev.pd>0&&P.pd>0?(P.pd/P.prev.pd-1)*100:null;return P}).sort((a,b)=>b.pts-a.pts)};
+}
+function desempChart(P){
+  const days=diasEntre(P.de,P.ate);
+  if(days<=45){const lb=[],v=[];for(let i=0;i<days;i++){const d=addDays(P.de,i),x=P.L.find(y=>y.d===d);lb.push(d.slice(8));v.push(x?Math.round(x.pts*10)/10:0)}return bars(lb,[{name:'Pontos por dia',color:'#F08A75',vals:v}],{h:170})}
+  const lb=[],v=[];for(let i=0;i<days;i+=7){const a=addDays(P.de,i),b=addDays(a,6)>P.ate?P.ate:addDays(a,6);lb.push(a.slice(8)+'/'+a.slice(5,7));v.push(Math.round(P.L.filter(x=>x.d>=a&&x.d<=b).reduce((s,x)=>s+x.pts,0)))}
+  return bars(lb,[{name:'Pontos por semana',color:'#F08A75',vals:v}],{h:170});
+}
+V.desemp=()=>{
+  const [de,ate]=rng('desemp'),D=desempCompleto(),all=S.funcs.filter(f=>f.ativo).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const setores=[...new Set(all.map(f=>f.setor))],ids=ui.dsel&&ui.dsel.length?ui.dsel:null;
+  const open=D.L.length<=3?null:ui.dopen;
+  const card=P=>{const o=D.L.length<=3||ui.dopen===P.f.id;
+    const head=`<div class="row between"><div class="row" style="gap:12px"><span class="av">${esc(P.f.nome[0])}</span><div><h3>${esc(P.f.nome)}</h3><span class="sm faint">${esc(P.f.setor)} · ${P.pos}º de ${D.C.total} no ranking · ${P.nd} dia(s) trabalhado(s)</span></div></div>${D.L.length>3?`<button class="btn sm" data-act="dOpen" data-id="${P.f.id}">${o?'Fechar':'Ver detalhes'}</button>`:''}</div>`;
+    const kp=`<div class="grid g4">${kpiBox('award','Pontos',nf(P.pts),nf(P.pd)+' por dia trabalhado')}${kpiBox('target','% da meta',P.pm==null?'-':ni(P.pm)+'%','meta '+ni(P.meta)+' pts por dia')}${kpiBox('package','Peças',ni(P.pec),P.perd?P.perd+' perdida(s) · '+nf(P.taxa)+'%':'sem perdas')}${kpiBox('cal','Faltas',P.faltas.length,P.vsPrev==null?'sem período anterior':(P.vsPrev>=0?'+':'')+ni(P.vsPrev)+'% vs período anterior')}</div>`;
+    if(!o)return `<div class="glass stack" style="gap:14px">${head}</div>`;
+    const li=a=>a.length?a.map(t=>`<li>${esc(t)}</li>`).join(''):'<li class="faint">Nada a destacar.</li>';
+    return `<div class="glass stack" style="gap:16px">${head}${kp}
+     <div class="grid g2"><div class="stack" style="gap:6px"><b style="color:var(--ok)">Pontos fortes</b><ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">${li(P.dest.bons)}</ul></div>
+     <div class="stack" style="gap:6px"><b style="color:var(--warn)">A melhorar</b><ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">${li(P.dest.melh)}</ul></div></div>
+     <div class="grid g2"><div class="stack" style="gap:8px"><b>Pontos por dia</b>${desempChart(P)}</div><div class="stack" style="gap:8px"><b>Pontos por etapa</b>${hbars(P.etapas.map(e=>[e.nome,Math.round(e.pts)]))}</div></div>
+     ${P.faltas.length?`<div class="sm muted">Faltas: ${P.faltas.map(x=>dow(x.d)+' '+br(x.d)+' ('+esc(x.falta)+')').join(' · ')}</div>`:''}</div>`};
+  return `<div class="stack">${header('Desempenho individual e em grupo','Para a conversa do fim do mês: resultados, pontos fortes e o que melhorar',`<div class="row"><button class="btn primary" data-act="dsExp" data-f="pdf">${ic('download')}PDF por colaborador</button><button class="btn primary" data-act="dsExp" data-f="xlsx">${ic('download')}Excel</button><button class="btn primary" data-act="dsExp" data-f="csv">${ic('download')}CSV</button></div>`)}
+  <div class="glass stack" style="gap:14px">${periodBar('desemp')}
+   <div><div class="sm muted" style="margin-bottom:8px">Quem aparece no relatório</div><div class="chips"><button class="chip ${ids?'':'on'}" data-act="dsAll">Todos (${all.length})</button>${setores.map(st=>`<button class="chip" data-act="dsSetor" data-s="${esc(st)}">Setor ${esc(st)}</button>`).join('')}</div>
+   <div class="chips" style="margin-top:8px">${all.map(f=>`<button class="chip ${ids&&ids.includes(f.id)?'on':''}" data-act="dsPick" data-id="${f.id}">${esc(f.nome)}</button>`).join('')}</div></div>
+   <p class="sm faint">Toque em um ou mais nomes para ver só essas pessoas. Os destaques são calculados automaticamente (meta, média do setor, perdas, faltas e evolução) e servem de apoio para a conversa, junto com o que você observa no dia a dia.</p></div>
+  ${D.L.length>1?`<div class="glass flush"><div style="padding:18px 20px 6px"><h3>Resumo do grupo · ${br(de)} a ${br(ate)}</h3></div><div class="tw"><table><thead><tr><th class="c">#</th><th>Funcionário</th><th>Setor</th><th class="c">Dias</th><th class="c">Pontos</th><th class="c">Pts/dia</th><th class="c">% da meta</th><th class="c">Peças</th><th class="c">Perda</th><th class="c">Faltas</th><th class="c">Evolução</th></tr></thead><tbody>
+   ${D.L.map((P,i)=>`<tr data-act="dOpen" data-id="${P.f.id}" style="cursor:pointer"><td class="c num"><b>${i+1}º</b></td><td class="name"><span class="av">${esc(P.f.nome[0])}</span>${esc(P.f.nome)}</td><td class="muted">${esc(P.f.setor)}</td><td class="c num">${P.nd}</td><td class="c num"><b>${nf(P.pts)}</b></td><td class="c num">${nf(P.pd)}</td><td class="c">${P.pm==null?'<span class="faint">-</span>':pctPill(P.pm)}</td><td class="c num">${ni(P.pec)}</td><td class="c num muted">${nf(P.taxa)}%</td><td class="c num">${P.faltas.length}</td><td class="c num">${P.vsPrev==null?'<span class="faint">-</span>':(P.vsPrev>=0?'+':'')+ni(P.vsPrev)+'%'}</td></tr>`).join('')}</tbody></table></div></div>`:''}
+  ${D.L.map(card).join('')||'<div class="glass empty">Nenhum funcionário ativo.</div>'}</div>`;
+};
+Object.assign(A,{
+  dsAll(){ui.dsel=null;draw(true)},
+  dsSetor(d){ui.dsel=S.funcs.filter(f=>f.ativo&&f.setor===d.s).map(f=>f.id);draw(true)},
+  dsPick(d){const id=+d.id,a=(ui.dsel||[]).slice(),i=a.indexOf(id);if(i>=0)a.splice(i,1);else a.push(id);ui.dsel=a.length?a:null;draw(true)},
+  dOpen(d){const id=+d.id;ui.dopen=ui.dopen===id?null:id;draw(true)},
+  dsExp(d){exportDesemp(d.f)}
+});
+async function exportDesemp(f){
+  const D=desempCompleto();if(!D.L.length){toast('Nenhum funcionário selecionado.');return}
+  const dls=await getDl();if(!dls)return;
+  const sl=s=>norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const base='ritmus-desempenho-'+D.de+'_a_'+D.ate+(D.L.length===1?'-'+sl(D.L[0].f.nome):'');
+  const r1=v=>Math.round(v*10)/10;
+  const resumo=[['Posição','Funcionário','Setor','Dias trabalhados','Pontos','Pontos por dia','Meta por dia','% da meta','Peças','Perdas','Taxa de perda (%)','Faltas','Posição no ranking geral','Evolução vs período anterior (%)','Etapa mais forte'],
+    ...D.L.map((P,i)=>[i+1,P.f.nome,P.f.setor,P.nd,r1(P.pts),r1(P.pd),P.meta,P.pm==null?'':r1(P.pm),P.pec,P.perd,r1(P.taxa),P.faltas.length,P.pos,P.vsPrev==null?'':r1(P.vsPrev),P.etapas[0]?P.etapas[0].nome:'-'])];
+  const porDia=[['Funcionário','Data','Dia','Pontos','Peças','Perdas','Falta (motivo)'],...D.L.flatMap(P=>P.L.map(x=>[P.f.nome,br(x.d),dow(x.d),r1(x.pts),x.pec,x.perd,x.falta||'']))];
+  const porEtapa=[['Funcionário','Etapa','Pontos','Peças'],...D.L.flatMap(P=>P.etapas.map(e=>[P.f.nome,e.nome,r1(e.pts),e.pec]))];
+  const dest=[['Funcionário','Tipo','Texto'],...D.L.flatMap(P=>[...P.dest.bons.map(t=>[P.f.nome,'Ponto forte',t]),...P.dest.melh.map(t=>[P.f.nome,'A melhorar',t])])];
+  const ids=new Set(D.L.map(P=>P.f.id));
+  const lanc=[['Funcionário','Data','OS','Etapa','Numerações (quantidade parcial entre parênteses)','Peças','Pontos'],...S.aps.filter(a=>ids.has(a.fid)&&a.d>=D.de&&a.d<=D.ate).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).map(a=>[(funcDe(a.fid)||{}).nome||'-',br(a.d),(osDe(a.oid)||{}).codigo||'-',(etapaDe(a.eid)||{}).nome||'-',fmtSz(a),qtyAp(a),r1(ptsAp(a))])];
+  let name,data;
+  try{
+    if(f==='csv'){name=base+'.csv';data=new Blob(['﻿'+resumo.map(r=>r.map(c=>csvEsc(cellTxt(c))).join(';')).join('\r\n')],{type:'text/csv'})}
+    else if(f==='xlsx'){
+      if(!window.XLSX){toast('Biblioteca do Excel não carregou. Recarregue a página.');return}
+      const wb=XLSX.utils.book_new();
+      [['Resumo',resumo],['Por dia',porDia],['Por etapa',porEtapa],['Destaques',dest],['Lançamentos',lanc]].forEach(([nm,rows])=>{const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=rows[0].map((h,i)=>({wch:Math.min(60,Math.max(String(h).length,...rows.slice(1,200).map(r=>String(r[i]==null?'':r[i]).length))+2)}));XLSX.utils.book_append_sheet(wb,ws,nm)});
+      name=base+'.xlsx';data=new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'});
+    }else{
+      if(!(window.jspdf&&window.jspdf.jsPDF)){toast('Biblioteca do PDF não carregou. Recarregue a página.');return}
+      const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+      const cab=(tit,sub)=>{try{doc.addImage(LOGO,'PNG',14,10,11,12.1)}catch(e){}doc.setFontSize(16);doc.setTextColor(30);doc.text(tit,29,16);doc.setFontSize(9);doc.setTextColor(120);doc.text(sub,29,22)};
+      const st={fontSize:9,cellPadding:2},hs={fillColor:[199,67,117],textColor:255};
+      let first=true;
+      if(D.L.length>1){
+        cab('Ritmus Dance - Resumo de desempenho','Período: '+br(D.de)+' a '+br(D.ate)+' · '+unNome(unAtual())+' · Gerado em '+br(today()));first=false;
+        doc.autoTable({startY:29,head:[['#','Funcionário','Setor','Dias','Pontos','Pts/dia','% meta','Peças','Perda %','Faltas']],body:D.L.map((P,i)=>[i+1,P.f.nome,P.f.setor,P.nd,nf(P.pts),nf(P.pd),P.pm==null?'-':ni(P.pm)+'%',ni(P.pec),nf(P.taxa),P.faltas.length]),styles:st,headStyles:hs,alternateRowStyles:{fillColor:[247,243,245]},margin:{left:14,right:14,bottom:14}});
+      }
+      D.L.forEach(P=>{
+        if(!first)doc.addPage();first=false;
+        cab('Ficha de desempenho - '+P.f.nome,P.f.setor+' · Período: '+br(D.de)+' a '+br(D.ate)+' · Gerado em '+br(today()));
+        doc.autoTable({startY:29,head:[['Indicador','Resultado']],body:[
+          ['Pontos no período',nf(P.pts)],['Dias trabalhados',String(P.nd)],['Pontos por dia trabalhado',nf(P.pd)],['Meta por dia',ni(P.meta)+' pontos'],['% da meta',P.pm==null?'-':ni(P.pm)+'%'],
+          ['Peças produzidas',ni(P.pec)],['Peças perdidas',P.perd+' ('+nf(P.taxa)+'%)'],['Faltas',String(P.faltas.length)],['Posição no ranking da empresa',P.pos+'º de '+D.C.total],
+          ['Evolução vs período anterior',P.vsPrev==null?'sem dados':(P.vsPrev>=0?'+':'')+ni(P.vsPrev)+'% em pontos por dia']],
+          styles:st,headStyles:hs,columnStyles:{0:{fontStyle:'bold',cellWidth:70}},margin:{left:14,right:14}});
+        let y=doc.lastAutoTable.finalY+8;
+        const lista=(tit,arr,cor)=>{if(y>H-40){doc.addPage();y=20}doc.setFontSize(11);doc.setTextColor(...cor);doc.text(tit,14,y);y+=5;doc.setFontSize(9.5);doc.setTextColor(40);
+          (arr.length?arr:['Nada a destacar.']).forEach(t=>{const ln=doc.splitTextToSize('- '+t,W-32);if(y+ln.length*4.6>H-18){doc.addPage();y=20}doc.text(ln,16,y);y+=ln.length*4.6+1.5});y+=3};
+        lista('Pontos fortes',P.dest.bons,[30,130,76]);lista('A melhorar',P.dest.melh,[190,120,20]);
+        if(P.etapas.length){if(y>H-50){doc.addPage();y=20}doc.autoTable({startY:y,head:[['Etapa','Pontos','Peças']],body:P.etapas.map(e=>[e.nome,nf(e.pts),ni(e.pec)]),styles:st,headStyles:hs,margin:{left:14,right:14}});y=doc.lastAutoTable.finalY+8}
+        if(P.L.length){if(y>H-50){doc.addPage();y=20}doc.autoTable({startY:y,head:[['Data','Dia','Pontos','Peças','Perdas','Falta']],body:P.L.map(x=>[br(x.d),dow(x.d),nf(x.pts),ni(x.pec),String(x.perd),x.falta||'']),styles:{fontSize:8.5,cellPadding:1.6},headStyles:hs,alternateRowStyles:{fillColor:[247,243,245]},margin:{left:14,right:14}});y=doc.lastAutoTable.finalY+10}
+        if(y>H-70){doc.addPage();y=20}
+        doc.setFontSize(11);doc.setTextColor(60);doc.text('Combinados e observações da conversa',14,y);y+=4;doc.setDrawColor(190);
+        for(let i=0;i<5;i++){y+=8;doc.line(14,y,W-14,y)}
+        y+=16;doc.line(20,y,85,y);doc.line(W-85,y,W-20,y);doc.setFontSize(8.5);doc.setTextColor(120);doc.text('Colaborador(a)',52,y+4,{align:'center'});doc.text('Diretoria',W-52,y+4,{align:'center'});
+      });
+      const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(140);doc.text('Página '+i+' de '+n,W-14,H-7,{align:'right'})}
+      name=base+'.pdf';data=new Blob([doc.output('arraybuffer')],{type:'application/pdf'});
+    }
+    await dls.save({filename:name,data});toast('Arquivo pronto: '+name);
+  }catch(e){
+    if(e&&e.code==='declined')return;
+    console.error(e);toast(e&&e.code==='rejected_extension'?'Formato não permitido nesta visualização.':'Não foi possível gerar o arquivo ('+((e&&(e.code||e.message))||'erro')+').');
+  }
+}
 
 /* ---------- Análise por setor ---------- */
 V.setor=()=>{
@@ -1521,48 +1726,92 @@ V.setor=()=>{
 };
 
 /* ---------- Controle de acesso (Diretoria) ---------- */
-const erroRpc=e=>{const m=String((e&&e.message)||'');if((e&&e.code==='PGRST202')||/schema cache|could not find the function/i.test(m))return 'Falta rodar o arquivo controle_acesso.sql no Supabase.';return m||'Erro desconhecido.'};
+const erroRpc=e=>{const m=String((e&&e.message)||'');if((e&&e.code==='PGRST202')||/schema cache|could not find the function/i.test(m))return 'Falta rodar o arquivo controle_acesso_v2.sql no Supabase.';return m||'Erro desconhecido.'};
 async function loadUsers(){
   ui.usersErr='';
   try{const {data,error}=await sb.rpc('listar_usuarios');if(error)throw error;ui.users=data||[]}
   catch(e){ui.users=[];ui.usersErr=erroRpc(e)}
   if(session&&ui.tab==='usuarios')draw(true);
 }
+const toolLbl=()=>Object.fromEntries([...PERMS,...TOOLS]);
+const ferrItems=()=>[...PERMS.filter(p=>p[0]!=='ger'),...TOOLS];
+function visUsers(){
+  const L=ui.users||[];if(eMaster())return L;
+  const mine=unPermitidas();
+  return L.filter(u=>u.papel==='ger'&&tokUn(u.permissoes).every(x=>mine.includes(x)));
+}
+function unidadesCard(){
+  return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Unidades (cidades)</h3><span class="sm faint">cada unidade tem funcionários, OS, lançamentos e dashboard próprios</span></div>
+  <div class="chips">${unidades().map(([id,n])=>`<span class="chip">${esc(n)} <span class="faint sm">${esc(id)}</span> <button type="button" class="ib" aria-label="Renomear ${esc(n)}" data-act="renUn" data-id="${esc(id)}">${ic('pencil')}</button></span>`).join('')}</div>
+  <form class="row" id="unf" style="flex-wrap:nowrap"><input name="nome" maxlength="30" placeholder="Nova cidade (ex: Rio de Janeiro)" aria-label="Nome da nova unidade" style="max-width:300px" required><button class="btn">${ic('plus')}Criar unidade</button></form>
+  <p class="sm faint">Depois de criar a unidade, crie a gerência e a diretoria dela em "Novo usuário". Cada usuário só enxerga as unidades liberadas para ele.</p></div>`;
+}
+function ferramentasCard(){
+  const oc=hiddenAll();
+  return `<form class="glass stack" id="tlf" style="gap:12px"><h3>Ferramentas da gerência</h3><p class="sm muted">Desmarque o que deve ficar <b>oculto para todas as gerências</b>. Dentro de cada usuário você ainda pode ocultar ferramentas só para ele.</p>
+  <div class="grid g2">${ferrItems().map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="vis" value="${k}" ${oc.includes(k)?'':'checked'} style="width:auto"> ${esc(l)}</label>`).join('')}</div>
+  <div class="row"><button class="btn primary">${ic('check')}Salvar</button></div></form>`;
+}
 V.usuarios=()=>{
-  const lbl=Object.fromEntries(PERMS);
+  const lbl=toolLbl();
   let body;
   if(ui.users===null)body='<div class="glass empty">Carregando usuários…</div>';
-  else if(ui.usersErr)body=`<div class="glass stack"><h3>Não foi possível carregar</h3><p class="muted">${esc(ui.usersErr)}</p>${/controle_acesso/.test(ui.usersErr)?'<p class="sm faint">Abra o SQL Editor do Supabase, cole o conteúdo do arquivo controle_acesso.sql e clique em Run. Depois volte aqui.</p>':''}<div><button class="btn" data-act="reloadUsers">Tentar de novo</button></div></div>`;
-  else body=`<div class="glass flush"><div class="tw"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Unidade</th><th>Acessos liberados</th><th class="r">Ações</th></tr></thead><tbody>
-   ${ui.users.map(u=>{const dir=u.papel==='dir',eu=u.email===session.email;
-     return `<tr><td class="name"><span class="av">${esc((u.nome||'?')[0])}</span>${esc(u.nome)}${eu?' <span class="faint sm">(você)</span>':''}</td><td class="muted">${esc(u.email)}</td><td>${dir?'<span class="pill ok">Diretoria</span>':'<span class="pill">Gerência</span>'}</td>
-     <td class="muted">${dir?'Todas':esc(unNome(((u.permissoes||[]).find(k=>/^un:/.test(String(k)))||'un:PIR').slice(3)))}</td>
-     <td>${dir?'<span class="muted sm">Acesso total</span>':((u.permissoes||[]).filter(k=>!/^un:/.test(String(k))).map(k=>`<span class="pill" style="margin:2px 4px 2px 0">${esc(lbl[k]||k)}</span>`).join('')||'<span class="faint sm">Nada liberado</span>')}</td>
-     <td class="r">${dir?'':`<button class="ib" aria-label="Editar ${esc(u.nome)}" title="Editar acessos" data-act="editUser" data-u="${esc(u.user_id)}">${ic('pencil')}</button>`}<button class="ib" aria-label="Trocar senha de ${esc(u.nome)}" title="Trocar senha" data-act="pwUser" data-u="${esc(u.user_id)}">${ic('key')}</button>${dir?'':`<button class="ib del" aria-label="Remover ${esc(u.nome)}" title="Remover usuário" data-act="delUser" data-u="${esc(u.user_id)}">${ic('trash')}</button>`}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">Nenhum usuário.</td></tr>'}</tbody></table></div></div>`;
-  return `<div class="stack">${header('Controle de acesso','Crie usuários da gerência e escolha o que cada um pode ver e fazer',`<button class="btn primary" data-act="newUser">${ic('plus')}Novo usuário</button>`)}${body}
-  <p class="sm faint">Cada pessoa entra com o próprio e-mail e senha. As permissões definem quais telas aparecem para o usuário. Para trocar a senha de alguém, use o ícone de chave.</p></div>`;
+  else if(ui.usersErr)body=`<div class="glass stack"><h3>Não foi possível carregar</h3><p class="muted">${esc(ui.usersErr)}</p>${/controle_acesso/.test(ui.usersErr)?'<p class="sm faint">Abra o SQL Editor do Supabase, cole o conteúdo do arquivo controle_acesso_v2.sql e clique em Run. Depois volte aqui.</p>':''}<div><button class="btn" data-act="reloadUsers">Tentar de novo</button></div></div>`;
+  else body=`<div class="glass flush"><div class="tw"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Unidade(s)</th><th>Acessos</th><th class="r">Ações</th></tr></thead><tbody>
+   ${visUsers().map(u=>{const dir=u.papel==='dir',eu=u.email===session.email,pm=Array.isArray(u.permissoes)?u.permissoes:[],t=tokUn(pm),oc=pm.filter(k=>/^no:/.test(String(k))).map(k=>String(k).slice(3));
+     const unTxt=t.length?t.map(unNome).join(', '):(dir?'Todas':unNome('PIR'));
+     const ac=dir?(t.length?'<span class="muted sm">Diretoria limitada às unidades'+(pm.includes('adm')?' · gerencia usuários':'')+'</span>':'<span class="muted sm">Acesso total</span>'):(pm.filter(k=>!/^(un|no):/.test(String(k))).map(k=>`<span class="pill" style="margin:2px 4px 2px 0">${esc(lbl[k]||k)}</span>`).join('')||'<span class="faint sm">Nada liberado</span>')+(oc.length?`<div class="faint sm">Ocultas: ${oc.map(k=>esc(lbl[k]||k)).join(', ')}</div>`:'');
+     const podeEd=!eu&&(!dir||eMaster()),podeDel=!eu&&(!dir||eMaster());
+     return `<tr><td class="name"><span class="av">${esc((u.nome||'?')[0])}</span>${esc(u.nome)}${eu?' <span class="faint sm">(você)</span>':''}</td><td class="muted">${esc(u.email)}</td><td>${dir?'<span class="pill ok">Diretoria</span>':'<span class="pill">Gerência</span>'}</td><td class="muted">${esc(unTxt)}</td><td>${ac}</td>
+     <td class="r">${podeEd?`<button class="ib" aria-label="Editar ${esc(u.nome)}" title="Editar acessos" data-act="editUser" data-u="${esc(u.user_id)}">${ic('pencil')}</button>`:''}<button class="ib" aria-label="Trocar senha de ${esc(u.nome)}" title="Trocar senha" data-act="pwUser" data-u="${esc(u.user_id)}">${ic('key')}</button>${podeDel?`<button class="ib del" aria-label="Remover ${esc(u.nome)}" title="Remover usuário" data-act="delUser" data-u="${esc(u.user_id)}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="6" class="empty">Nenhum usuário.</td></tr>'}</tbody></table></div></div>`;
+  return `<div class="stack">${header('Controle de acesso','Crie diretorias e gerências, escolha a unidade e o que cada pessoa pode ver e fazer',`<button class="btn primary" data-act="newUser">${ic('plus')}Novo usuário</button>`)}${body}
+  ${eMaster()?unidadesCard():''}${ferramentasCard()}
+  <p class="sm faint">Cada pessoa entra com o próprio e-mail e senha. Para trocar a senha de alguém, use o ícone de chave.</p></div>`;
 };
 function formUser(u){
-  const sel=u?(Array.isArray(u.permissoes)?u.permissoes:[]):DEFAULT_GER,unSel=((sel.find(k=>/^un:/.test(String(k)))||'un:'+unAtual()).slice(3));
+  const sel=u?(Array.isArray(u.permissoes)?u.permissoes:[]):DEFAULT_GER;
+  const isDirU=!!u&&u.papel==='dir';
+  const mine=unPermitidas(),opts=eMaster()?unidades():unidades().filter(x=>mine.includes(x[0]));
+  if(!opts.length){toast('Você não tem unidade liberada para criar usuários.');return}
+  const toks=tokUn(sel),unSel=toks[0]||(opts.some(x=>x[0]===unAtual())?unAtual():opts[0][0]);
+  const oc=sel.filter(k=>/^no:/.test(String(k))).map(k=>String(k).slice(3));
   modal(u?'Editar usuário':'Novo usuário',`<label class="f">Nome<input name="nome" value="${esc(u?u.nome:'')}" required></label>
    <label class="f">E-mail (usado para entrar)<input type="email" name="email" value="${esc(u?u.email:'')}" ${u?'disabled':''} ${u?'':'required'} autocomplete="off"></label>
    ${u?'':'<label class="f">Senha inicial (mínimo 6 caracteres)<input type="text" name="senha" minlength="6" autocomplete="off" required></label>'}
-   <label class="f">Unidade deste usuário<select name="unid">${UNIDADES.map(([k,l])=>`<option value="${k}" ${k===unSel?'selected':''}>${l}</option>`).join('')}</select></label>
-   <div><div class="sm muted" style="margin-bottom:8px">O que este usuário pode acessar</div><div class="stack" style="gap:8px">${PERMS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="perm" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>`,
+   ${u?'':`<label class="f">Perfil<select name="papel" data-chg="papelSel"><option value="ger">Gerência</option>${eMaster()?'<option value="dir">Diretoria</option>':''}</select></label>`}
+   <div id="blkGer" ${isDirU?'hidden':''} class="stack" style="gap:14px">
+    <label class="f">Unidade<select name="unid">${opts.map(([k,l])=>`<option value="${esc(k)}" ${k===unSel?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+    <div><div class="sm muted" style="margin-bottom:8px">Telas que este usuário pode abrir</div><div class="stack" style="gap:8px">${PERMS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="perm" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>
+    <div><div class="sm muted" style="margin-bottom:8px">Ferramentas (desmarque para ocultar)</div><div class="stack" style="gap:8px">${TOOLS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="tool" value="${k}" ${oc.includes(k)?'':'checked'} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>
+   </div>
+   <div id="blkDir" ${isDirU?'':'hidden'} class="stack" style="gap:14px">
+    <div><div class="sm muted" style="margin-bottom:8px">Unidades que esta diretoria pode ver. Nenhuma marcada = Diretoria geral (vê e gerencia tudo).</div><div class="chips">${unidades().map(([k,l])=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="duns" value="${esc(k)}" ${toks.includes(k)?'checked':''} style="width:auto">${esc(l)}</label>`).join('')}</div></div>
+    <label class="row" style="gap:10px"><input type="checkbox" name="adm" ${sel.includes('adm')?'checked':''} style="width:auto"> Pode criar usuários e editar produtos (só vale para diretoria limitada)</label>
+   </div>`,
    u?'Salvar':'Criar usuário',fd=>{
-    const nome=String(fd.get('nome')||'').trim(),perms=fd.getAll('perm').map(String);perms.push('un:'+String(fd.get('unid')||'PIR'));
+    const nome=String(fd.get('nome')||'').trim(),papel=u?u.papel:String(fd.get('papel')||'ger');
     if(!nome){toast('Informe o nome.');return false}
     let email='',senha='';
     if(!u){email=String(fd.get('email')||'').trim().toLowerCase();senha=String(fd.get('senha')||'');if(!email){toast('Informe o e-mail.');return false}if(senha.length<6){toast('A senha precisa ter pelo menos 6 caracteres.');return false}}
+    let perms=[];
+    if(papel==='ger'){
+      const marc=new Set(fd.getAll('tool').map(String));
+      perms=fd.getAll('perm').map(String);
+      TOOLS.forEach(([k])=>{if(!marc.has(k))perms.push('no:'+k)});
+      perms.push('un:'+String(fd.get('unid')||opts[0][0]));
+    }else{
+      const d=fd.getAll('duns').map(String);d.forEach(x=>perms.push('un:'+x));
+      if(d.length&&fd.get('adm')==='on')perms.push('adm');
+    }
     (async()=>{
       try{
         if(u){const {error}=await sb.rpc('atualizar_usuario',{p_user:u.user_id,p_nome:nome,p_permissoes:perms});if(error)throw error;toast('Usuário atualizado.')}
-        else{const {error}=await sb.rpc('criar_usuario',{p_email:email,p_senha:senha,p_nome:nome,p_permissoes:perms});if(error)throw error;toast('Usuário criado. Ele já pode entrar com o e-mail e a senha definidos.')}
+        else{const args={p_email:email,p_senha:senha,p_nome:nome,p_permissoes:perms};if(papel==='dir')args.p_papel='dir';const {error}=await sb.rpc('criar_usuario',args);if(error)throw error;toast('Usuário criado. Ele já pode entrar com o e-mail e a senha definidos.')}
         closeModal();loadUsers();
       }catch(e){toast(erroRpc(e))}
     })();
     return false;
-  });
+  },true);
 }
 function formPwUser(u){
   modal('Trocar senha de '+u.nome,`<label class="f">Nova senha<input type="password" name="p1" minlength="6" autocomplete="new-password" required></label>

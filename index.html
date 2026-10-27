@@ -280,7 +280,7 @@ const ic=n=>'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</sv
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function seed(){
   const rnd=mulberry(11);
-  const S={cfg:{dN:'Bruno',dS:'1234',gN:'Gênia',gS:'1234'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:null,nid:1};
+  const S={cfg:{dN:'Bruno',dS:'1234',gN:'Gênia',gS:'1234'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:null,romaneios:[],nid:1};
   const id=()=>S.nid++;
   const pids={};
   ['Korino','Ovinho','Máxima','Premium'].forEach(n=>{
@@ -317,7 +317,7 @@ function seed(){
   return S;
 }
 
-let S,session=null,ui={tab:'geral',relK:'desempenho',dashEdit:false,per:{},rankSel:null,cmp:{on:false,a:null,b:null},prod:{os:null,cmp:false,os2:null},gerF:null,gerOs:null,login:{role:null,err:''}};
+let S,session=null,ui={tab:'geral',relK:'desempenho',dashEdit:false,per:{},rankSel:null,cmp:{on:false,a:null,b:null},prod:{os:null,cmp:false,os2:null},gerF:null,gerOs:null,login:{role:null,err:''},rom:null,romF:'ativos'};
 let drafts={},qdrafts={};
 function initUi(){
   const w=()=>({p:'semana',de:addDays(today(),-6),ate:today()});
@@ -750,7 +750,7 @@ async function exportRep(f){
 
 /* ---------- casca, login, modais ---------- */
 let modalOk=null,toastT=null;
-const TABS_DIR=[['geral','Visão geral','grid'],['funcs','Funcionários','users'],['prods','Produtos e etapas','package'],['os','Fichas e OS','clip'],['prod','Produção e análise','bars'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download'],['usuarios','Controle de acesso','shield']];
+const TABS_DIR=[['geral','Visão geral','grid'],['funcs','Funcionários','users'],['prods','Produtos e etapas','package'],['os','Fichas e OS','clip'],['transf','Transferências','swap'],['prod','Produção e análise','bars'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download'],['usuarios','Controle de acesso','shield']];
 const TABS_GER_ALL=[['ger','Lançamento do dia','clip'],['os','Fichas e OS','package'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download']];
 const PERMS=[['ger','Lançamento do dia'],['retro','Lançar em dias anteriores'],['os','Fichas e OS'],['rank','Ranking'],['desemp','Desempenho individual (por colaborador)'],['setor','Análise por setor'],['perdas','Perdas'],['faltas','Presença e faltas'],['avisos','Avisos'],['relat','Relatórios']];
 const DEFAULT_GER=['ger','retro','os','rank','setor','faltas','avisos'];
@@ -1325,9 +1325,9 @@ Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPl
 /* ---------- Supabase: login, sincronização e tempo real ---------- */
 const CFG=window.RITMUS_CONFIG||{};
 let lastPersist=0,sb=null,chan=null,snap={},flushT=null,flushing=false,again=false,redrawPending=false,redrawT=null,subOnce=false;
-const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash'];
+const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash','romaneios'];
 const ALL=[...COLS,'cfg'];
-const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],nid:1});
+const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],romaneios:[],nid:1});
 const canon=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.keys(x).sort().reduce((o,kk)=>(o[kk]=x[kk],o),{}):x);
 const keyOf=(c,x)=>c==='aps'?[x.d,x.fid,x.oid,x.eid].join('|'):String(x.id);
 const rowsOf=c=>c==='cfg'?[['main',S.cfg]]:S[c].map(x=>[keyOf(c,x),x]);
@@ -1732,6 +1732,219 @@ V.setor=()=>{
   ${L.map((x,i)=>`<tr><td class="c num"><b>${i+1}º</b></td><td><b>${esc(x.setor)}</b></td><td class="c num">${x.n}</td><td class="c num"><b>${nf(x.pts)}</b></td><td class="c num">${ni(x.pec)}</td><td class="c num muted">${nf(x.taxa)}%</td><td class="c num">${nf(x.pf)}</td><td class="c">${x.meta?pctPill(x.pm):'<span class="faint">-</span>'}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">Nenhum setor cadastrado.</td></tr>'}</tbody></table></div></div>
   <p class="sm faint">% da meta = pontos do setor ÷ (meta diária dos funcionários ativos × dias com produção no período). É a forma mais justa de comparar setores de tamanhos diferentes.</p></div>`;
 };
+
+
+/* ======================= Transferências entre Unidades (romaneios) ======================= */
+const CLASSIF=[['producao','Aguardando produção'],['liberado','Liberado para a próxima etapa'],['inspecao','Aguardando inspeção'],['retrabalho','Encaminhado para ajuste/retrabalho'],['devolucao','Devolução a outra unidade']];
+const classifLbl=k=>(CLASSIF.find(x=>x[0]===k)||[0,k])[1];
+const ROM_ST={rascunho:['Rascunho',''],aguardando:['Aguardando expedição','warn'],transito:['Em trânsito','warn'],parcial:['Recebido parcialmente','warn'],recebido:['Recebido','ok'],cancelado:['Cancelado','bad']};
+const romDe=id=>by(S.romaneios,id);
+const romClassificado=r=>r.itens.every(it=>it.qtdRecebida!=null&&(it.classif||[]).reduce((s,c)=>s+c.qtd,0)>=it.qtdRecebida);
+const romUnsPerm=()=>eMaster()?unidades():unidades().filter(x=>unPermitidas().includes(x[0]));
+const romNumero=()=>{const n=Math.max(0,...S.romaneios.map(r=>parseInt(String(r.numero||'').replace(/\D/g,''))||0))+1;return 'RM'+String(n).padStart(4,'0')};
+/* saldo de um tamanho de uma OS fisicamente presente numa unidade, somando o histórico de romaneios não cancelados */
+function romSaldo(oid,n,un){
+  const o=osDe(oid);if(!o)return 0;
+  let v=(uOf(o)===un)?Math.max(0,(Number(o.grade[n])||0)-perdaOs(oid,n)):0;
+  S.romaneios.forEach(r=>{
+    if(r.status==='cancelado'||r.status==='rascunho'||r.status==='aguardando')return;
+    (r.itens||[]).forEach(it=>{
+      if(it.oid!==oid||it.n!==n)return;
+      if(r.origem===un)v-=it.qtdEnviada;
+      if(r.destino===un)v+=(it.qtdRecebida!=null?it.qtdRecebida:(r.status==='transito'?0:it.qtdEnviada));
+    });
+  });
+  return Math.max(0,v);
+}
+const osComSaldoEm=un=>S.os.filter(o=>o.status==='Em andamento'&&Object.keys(o.grade).some(n=>romSaldo(o.id,+n,un)>0));
+const tamanhosComSaldo=(o,un)=>Object.keys(o.grade).map(Number).filter(n=>romSaldo(o.id,n,un)>0).sort((a,b)=>b-a);
+function romNovo(){ui.rom={origem:(unPermitidas()[0]||''),destino:'',autor:meuNome(),itens:[],selOid:'',selN:''};draw(true)}
+function romItensPeca(it){return ni(it.qtdEnviada)+' pç'}
+function romFormCriar(){
+  const r=ui.rom,uns=romUnsPerm();
+  const osOr=r.origem?osComSaldoEm(r.origem):[];
+  const oSel=r.selOid?osDe(+r.selOid):null;
+  const tam=oSel?tamanhosComSaldo(oSel,r.origem):[];
+  const es=oSel?etapasOs(oSel):[];
+  const maxQ=(oSel&&r.selN)?romSaldo(oSel.id,+r.selN,r.origem):0;
+  return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Novo romaneio</h3><button type="button" class="btn g" data-act="romCancelNovo">${ic('x')}Fechar</button></div>
+  <div class="grid g2">
+   <label class="f">Unidade de origem<select data-chg="romOrigem">${uns.map(([u,l])=>`<option value="${esc(u)}" ${r.origem===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+   <label class="f">Unidade de destino<select data-chg="romDestino"><option value="">Selecione…</option>${uns.filter(x=>x[0]!==r.origem).map(([u,l])=>`<option value="${esc(u)}" ${r.destino===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+  </div>
+  <label class="f">Responsável pela expedição<input data-chg="romAutor" value="${esc(r.autor)}"></label>
+  <div class="glass" style="padding:12px;background:var(--glass-2)"><div class="grid g2" style="margin-bottom:10px">
+   <label class="f">OS (só com saldo na origem)<select data-chg="romSelOid"><option value="">Selecione…</option>${osOr.map(o=>`<option value="${o.id}" ${r.selOid==o.id?'selected':''}>${esc(o.codigo)} · ${esc((prodDe(o.pid)||{}).nome||'')} ${esc(o.cor)}</option>`).join('')}</select></label>
+   <label class="f">Tamanho<select data-chg="romSelN" ${tam.length?'':'disabled'}><option value="">Selecione…</option>${tam.map(n=>`<option value="${n}" ${+r.selN===n?'selected':''}>${n} · saldo ${romSaldo(oSel.id,n,r.origem)}</option>`).join('')}</select></label></div>
+   <div class="grid g2">
+    <label class="f">Quantidade a enviar${maxQ?` <span class="faint">(máx. ${maxQ})</span>`:''}<input type="number" id="romQtd" min="1" max="${maxQ||1}" value="${maxQ?Math.min(1,maxQ):''}" ${maxQ?'':'disabled'}></label>
+    <label class="f">Etapa anterior (opcional)<select id="romEtapaAnt" ${es.length?'':'disabled'}><option value="">—</option>${es.map(e=>`<option value="${esc(e.nome)}">${esc(e.nome)}</option>`).join('')}</select></label>
+   </div>
+   <div class="row" style="justify-content:flex-end;margin-top:10px"><button type="button" class="btn primary" data-act="romAddItem" ${maxQ?'':'disabled'}>${ic('plus')}Adicionar item</button></div></div>
+  ${r.itens.length?`<div class="tw"><table><thead><tr><th>OS</th><th>Tamanho</th><th class="c">Qtd</th><th>Etapa anterior</th><th class="r"></th></tr></thead><tbody>
+   ${r.itens.map((it,i)=>`<tr><td><b>${esc((osDe(it.oid)||{}).codigo||'?')}</b></td><td>${it.n}</td><td class="c num">${ni(it.qtd)}</td><td class="muted">${esc(it.etapaAnt||'-')}</td><td class="r"><button type="button" class="ib del" aria-label="Remover item" data-act="romRmItem" data-i="${i}">${ic('trash')}</button></td></tr>`).join('')}
+   </tbody></table></div>`:'<p class="sm faint">Nenhum item adicionado ainda.</p>'}
+  <div class="row" style="justify-content:flex-end"><button type="button" class="btn primary" data-act="romSalvar">${ic('save')}Salvar romaneio</button></div></div>`;
+}
+V.transf=()=>{
+  const uns=romUnsPerm();
+  if(uns.length<2)return `<div class="stack">${header('Transferências entre Unidades','Movimentação de produtos em processo entre unidades')}<div class="glass empty">É preciso ter ao menos duas unidades para criar transferências.</div></div>`;
+  const lista=S.romaneios.filter(r=>unPermitidas().includes(r.origem)||unPermitidas().includes(r.destino))
+    .filter(r=>ui.romF==='todos'||(r.status!=='cancelado'&&!(r.status==='recebido'&&romClassificado(r))))
+    .sort((a,b)=>b.data<a.data?-1:b.data>a.data?1:(b.numero<a.numero?-1:1));
+  const rows=lista.map(r=>{
+    const [lbl,cls]=ROM_ST[r.status]||[r.status,''];
+    const pode_exp=unPermitidas().includes(r.origem),pode_rec=unPermitidas().includes(r.destino);
+    const totPc=(r.itens||[]).reduce((s,it)=>s+(Number(it.qtdEnviada)||0),0);
+    const acts=[];
+    if(['rascunho','aguardando'].includes(r.status)&&pode_exp)acts.push(`<button class="ib" aria-label="Expedir" title="Confirmar saída física" data-act="romExpedir" data-id="${r.id}">${ic('swap')}</button>`);
+    if(['transito','parcial'].includes(r.status)&&pode_rec)acts.push(`<button class="ib" aria-label="Conferir recebimento" title="Conferir recebimento" data-act="romReceber" data-id="${r.id}">${ic('check')}</button>`);
+    if(['parcial','recebido'].includes(r.status)&&pode_rec)acts.push(`<button class="ib" aria-label="Classificar itens" title="Classificar destino produtivo" data-act="romClassif" data-id="${r.id}">${ic('target')}</button>`);
+    if(['rascunho','aguardando'].includes(r.status)&&pode_exp)acts.push(`<button class="ib del" aria-label="Cancelar" title="Cancelar romaneio" data-act="romCancel" data-id="${r.id}">${ic('x')}</button>`);
+    acts.push(`<button class="ib" aria-label="Baixar PDF" title="Baixar PDF" data-act="romPdf" data-id="${r.id}">${ic('download')}</button>`);
+    return `<tr><td><b>${esc(r.numero)}</b></td><td class="muted">${br(r.data)}</td><td>${esc(unNome(r.origem))} → ${esc(unNome(r.destino))}</td><td class="c num">${ni(totPc)} pç · ${r.itens.length} item(ns)</td><td><span class="pill ${cls}">${lbl}</span></td><td class="r">${acts.join('')}</td></tr>`;
+  }).join('')||'<tr><td colspan="6" class="empty">Nenhum romaneio.</td></tr>';
+  return `<div class="stack">${header('Transferências entre Unidades','Movimentação de produtos em processo entre unidades, com rastreabilidade até a OS de origem',`<button class="btn primary" data-act="romNovo">${ic('plus')}Novo romaneio</button>`)}
+  ${ui.rom?romFormCriar():''}
+  <div class="glass row between"><div class="row" style="gap:8px"><button class="btn ${ui.romF!=='todos'?'primary':''}" data-act="romFiltro" data-v="ativos">Em andamento</button><button class="btn ${ui.romF==='todos'?'primary':''}" data-act="romFiltro" data-v="todos">Todos</button></div><span class="sm faint">${lista.length} romaneio(s)</span></div>
+  <div class="glass flush"><div class="tw"><table><thead><tr><th>Número</th><th>Data</th><th>Rota</th><th>Itens</th><th>Status</th><th class="r">Ações</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+  <p class="sm faint">Localização, etapa de produção e qualidade são controles separados: a transferência move a localização, mas não conclui etapa nem OS. A unidade de destino decide o encaminhamento depois de conferir o que chegou.</p></div>`;
+};
+Object.assign(A,{
+  romNovo(){romNovo()},
+  romCancelNovo(){ui.rom=null;draw(true)},
+  romAddItem(){
+    const r=ui.rom;if(!r||!r.selOid||!r.selN){toast('Escolha a OS e o tamanho.');return}
+    const o=osDe(+r.selOid),n=+r.selN,max=romSaldo(o.id,n,r.origem),qtd=parseInt($('#romQtd').value);
+    if(!(qtd>0)){toast('Informe uma quantidade válida.');return}
+    if(qtd>max){toast('Só há '+max+' unidade(s) disponível(is) nesse tamanho, nessa unidade.');return}
+    const etapaAnt=($('#romEtapaAnt')||{}).value||'';
+    r.itens.push({oid:o.id,n,qtd,etapaAnt});
+    r.selOid='';r.selN='';draw(true);
+  },
+  romRmItem(d){ui.rom.itens.splice(+d.i,1);draw(true)},
+  romSalvar(){
+    const r=ui.rom;
+    if(!r.origem||!r.destino){toast('Escolha a origem e o destino.');return}
+    if(r.origem===r.destino){toast('A origem e o destino não podem ser a mesma unidade.');return}
+    if(!r.itens.length){toast('Adicione ao menos um item.');return}
+    if(!eMaster()&&(!unPermitidas().includes(r.origem)||!unPermitidas().includes(r.destino))){toast('Você só pode transferir entre as suas unidades.');return}
+    const autor=String(r.autor||meuNome()).trim()||meuNome();
+    const itens=r.itens.map(it=>{
+      const max=romSaldo(it.oid,it.n,r.origem);
+      return {id:uid(),oid:it.oid,n:it.n,etapaAnt:it.etapaAnt||'',qtdEnviada:Math.min(it.qtd,max),qtdRecebida:null,classif:[]};
+    }).filter(it=>it.qtdEnviada>0);
+    if(!itens.length){toast('O saldo mudou e não sobrou quantidade disponível. Refaça os itens.');return}
+    const numero=romNumero();
+    S.romaneios.push({id:uid(),numero,data:today(),origem:r.origem,destino:r.destino,autor,status:'aguardando',itens,
+      eventos:[{t:'criado',d:new Date().toISOString(),autor,obs:''}]});
+    ui.rom=null;commit('Romaneio '+numero+' criado.',true);
+  },
+  romFiltro(d){ui.romF=d.v;draw(true)},
+  romExpedir(d){
+    const r=romDe(+d.id);if(!r)return;
+    if(!eMaster()&&!unPermitidas().includes(r.origem)){toast('Sem permissão nessa unidade.');return}
+    const falta=r.itens.find(it=>it.qtdEnviada>romSaldo(it.oid,it.n,r.origem));
+    if(falta){toast('O saldo da OS '+(osDe(falta.oid)||{}).codigo+' mudou e não cobre mais esse romaneio.');return}
+    confirmBox('Confirmar a saída física do romaneio <b>'+esc(r.numero)+'</b> ('+esc(unNome(r.origem))+' → '+esc(unNome(r.destino))+')? O estoque da origem será debitado.','Confirmar saída',()=>{
+      r.status='transito';r.expedidoEm=new Date().toISOString();r.expedidoPor=meuNome();
+      r.eventos.push({t:'expedido',d:r.expedidoEm,autor:meuNome(),obs:''});
+      commit('Romaneio '+r.numero+' em trânsito.',true);
+    });
+  },
+  romCancel(d){
+    const r=romDe(+d.id);if(!r)return;
+    if(!eMaster()&&!unPermitidas().includes(r.origem)){toast('Sem permissão nessa unidade.');return}
+    confirmBox('Cancelar o romaneio <b>'+esc(r.numero)+'</b>? Ele ainda não saiu fisicamente da origem.','Cancelar romaneio',()=>{
+      r.status='cancelado';r.eventos.push({t:'cancelado',d:new Date().toISOString(),autor:meuNome(),obs:''});
+      commit('Romaneio '+r.numero+' cancelado.',true);
+    });
+  },
+  romReceber(d){
+    const r=romDe(+d.id);if(!r)return;
+    if(!eMaster()&&!unPermitidas().includes(r.destino)){toast('Sem permissão nessa unidade.');return}
+    const pend=r.itens.filter(it=>it.qtdRecebida==null);
+    if(!pend.length){toast('Todos os itens já foram conferidos.');return}
+    modal('Conferir recebimento — '+r.numero,
+      `<p class="sm muted">${esc(unNome(r.origem))} → ${esc(unNome(r.destino))}. Informe a quantidade realmente recebida de cada item.</p>
+      ${pend.map(it=>`<label class="f">${esc((osDe(it.oid)||{}).codigo||'?')} · tamanho ${it.n} · enviado ${ni(it.qtdEnviada)}${it.etapaAnt?' · etapa anterior: '+esc(it.etapaAnt):''}
+        <input type="number" name="q_${it.id}" min="0" max="${it.qtdEnviada}" value="${it.qtdEnviada}" required></label>`).join('')}`,
+      'Confirmar recebimento',fd=>{
+        pend.forEach(it=>{
+          let v=parseInt(fd.get('q_'+it.id));if(!(v>=0))v=0;if(v>it.qtdEnviada)v=it.qtdEnviada;
+          it.qtdRecebida=v;
+        });
+        r.recebidoEm=new Date().toISOString();r.recebidoPor=meuNome();
+        r.status=r.itens.every(it=>it.qtdRecebida!=null)?'recebido':'parcial';
+        r.eventos.push({t:'recebido',d:r.recebidoEm,autor:meuNome(),obs:''});
+        commit('Recebimento registrado em '+r.numero+'.',true);
+      });
+  },
+  romClassif(d){
+    const r=romDe(+d.id);if(!r)return;
+    if(!eMaster()&&!unPermitidas().includes(r.destino)){toast('Sem permissão nessa unidade.');return}
+    const itens=r.itens.filter(it=>it.qtdRecebida!=null);
+    const rest=it=>it.qtdRecebida-(it.classif||[]).reduce((s,c)=>s+c.qtd,0);
+    const body=itens.map(it=>{
+      const classifTxt=(it.classif||[]).map((c,ci)=>`<div class="row between sm"><span>${ni(c.qtd)} · ${esc(classifLbl(c.destino))}${c.obs?' — '+esc(c.obs):''}</span><button type="button" class="ib del" aria-label="Remover classificação" data-act="romRmClassif" data-id="${r.id}" data-it="${it.id}" data-ci="${ci}">${ic('trash')}</button></div>`).join('')||'<span class="faint sm">Sem classificação ainda.</span>';
+      return `<div class="glass" style="padding:10px;margin-bottom:8px"><b>${esc((osDe(it.oid)||{}).codigo||'?')}</b> · tamanho ${it.n} · recebido ${ni(it.qtdRecebida)} · restam classificar <b>${ni(rest(it))}</b>
+      <div style="margin:6px 0">${classifTxt}</div>
+      ${rest(it)>0?`<div class="row" style="gap:8px"><input type="number" id="cq_${it.id}" min="1" max="${rest(it)}" value="${rest(it)}" style="max-width:90px"><select id="cd_${it.id}">${CLASSIF.map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</select><input id="co_${it.id}" placeholder="Motivo (opcional)"><button type="button" class="btn" data-act="romAddClassif" data-id="${r.id}" data-it="${it.id}">${ic('plus')}Adicionar</button></div>`:''}</div>`;
+    }).join('');
+    modal('Classificar itens — '+r.numero,body||'<p class="muted">Nenhum item recebido ainda.</p>','Fechar',()=>{},true);
+  },
+  romAddClassif(d){
+    const r=romDe(+d.id),it=r&&r.itens.find(x=>x.id===+d.it);if(!r||!it)return;
+    const rest=it.qtdRecebida-(it.classif||[]).reduce((s,c)=>s+c.qtd,0);
+    const qtd=parseInt($('#cq_'+it.id).value),destino=$('#cd_'+it.id).value,obs=String($('#co_'+it.id).value||'').trim();
+    if(!(qtd>0)||qtd>rest){toast('Quantidade inválida.');return}
+    it.classif=it.classif||[];it.classif.push({qtd,destino,obs});
+    r.eventos.push({t:'classificado',d:new Date().toISOString(),autor:meuNome(),obs:(osDe(it.oid)||{}).codigo+' nº'+it.n+': '+qtd+' → '+classifLbl(destino)});
+    persist();A.romClassif({id:r.id});
+  },
+  romRmClassif(d){
+    const r=romDe(+d.id),it=r&&r.itens.find(x=>x.id===+d.it);if(!r||!it)return;
+    it.classif.splice(+d.ci,1);persist();A.romClassif({id:r.id});
+  },
+  romPdf(d){exportRomaneioPdf(+d.id)}
+});
+Object.assign(C,{
+  romOrigem(el){ui.rom.origem=el.value;if(ui.rom.destino===el.value)ui.rom.destino='';ui.rom.selOid='';ui.rom.selN='';draw(true)},
+  romDestino(el){ui.rom.destino=el.value;draw(true)},
+  romAutor(el){ui.rom.autor=el.value},
+  romSelOid(el){ui.rom.selOid=el.value;ui.rom.selN='';draw(true)},
+  romSelN(el){ui.rom.selN=el.value;draw(true)}
+});
+async function exportRomaneioPdf(id){
+  const r=romDe(id);if(!r)return;
+  if(!(window.jspdf&&window.jspdf.jsPDF)){toast('Biblioteca do PDF não carregou. Recarregue a página.');return}
+  const dls=await getDl();if(!dls)return;
+  try{
+    const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+    try{doc.addImage(LOGO,'PNG',14,10,11,12.1)}catch(e){}
+    doc.setFontSize(16);doc.setTextColor(30);doc.text('Romaneio '+r.numero,29,16);
+    doc.setFontSize(9);doc.setTextColor(120);doc.text('Data: '+br(r.data)+' · Gerado em '+br(today()),29,22);
+    doc.setFontSize(10.5);doc.setTextColor(40);
+    doc.text('Origem: '+unNome(r.origem),14,32);doc.text('Destino: '+unNome(r.destino),110,32);
+    doc.text('Responsável pela expedição: '+(r.autor||'-'),14,38);
+    const [lbl]=ROM_ST[r.status]||[r.status];doc.text('Status: '+lbl,110,38);
+    doc.autoTable({startY:44,head:[['OS','Produto','Cor','Tamanho','Qtd enviada','Etapa anterior']],
+      body:r.itens.map(it=>{const o=osDe(it.oid);return [o?o.codigo:'?',o?((prodDe(o.pid)||{}).nome||''):'',o?o.cor:'',String(it.n),ni(it.qtdEnviada),it.etapaAnt||'-']}),
+      styles:{fontSize:9,cellPadding:2},headStyles:{fillColor:[199,67,117],textColor:255},margin:{left:14,right:14}});
+    let y=doc.lastAutoTable.finalY+14;
+    if(y>H-40){doc.addPage();y=20}
+    doc.setFontSize(9.5);doc.setTextColor(60);doc.text('Conferência na unidade de destino',14,y);y+=10;
+    doc.setDrawColor(190);doc.line(20,y,85,y);doc.line(W-85,y,W-20,y);doc.setFontSize(8.5);doc.setTextColor(120);
+    doc.text('Expedido por',52,y+4,{align:'center'});doc.text('Recebido por',W-52,y+4,{align:'center'});
+    const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(140);doc.text('Página '+i+' de '+n,W-14,H-7,{align:'right'})}
+    const name='romaneio-'+r.numero+'.pdf';
+    await dls.save({filename:name,data:new Blob([doc.output('arraybuffer')],{type:'application/pdf'})});
+    toast('Arquivo pronto: '+name);
+  }catch(e){
+    if(e&&e.code==='declined')return;
+    console.error(e);toast('Não foi possível gerar o PDF.');
+  }
+}
 
 /* ---------- Controle de acesso (Diretoria) ---------- */
 const erroRpc=e=>{const m=String((e&&e.message)||'');if((e&&e.code==='PGRST202')||/schema cache|could not find the function/i.test(m))return 'Falta rodar o arquivo controle_acesso_v2.sql no Supabase.';return m||'Erro desconhecido.'};

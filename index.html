@@ -1756,9 +1756,9 @@ function romSaldo(oid,n,un){
   });
   return Math.max(0,v);
 }
-const osComSaldoEm=un=>S.os.filter(o=>o.status==='Em andamento'&&Object.keys(o.grade).some(n=>romSaldo(o.id,+n,un)>0));
+const osComSaldoEm=un=>S.os.filter(o=>Object.keys(o.grade).some(n=>romSaldo(o.id,+n,un)>0));
 const tamanhosComSaldo=(o,un)=>Object.keys(o.grade).map(Number).filter(n=>romSaldo(o.id,n,un)>0).sort((a,b)=>b-a);
-function romNovo(){ui.rom={origem:(unPermitidas()[0]||''),destino:'',autor:meuNome(),itens:[],selOid:'',selN:''};draw(true)}
+function romNovo(){ui.rom={origem:(unPermitidas()[0]||''),destino:'',autor:meuNome(),itens:[],selOid:''};draw(true)}
 function romItensPeca(it){return ni(it.qtdEnviada)+' pç'}
 function romFormCriar(){
   const r=ui.rom,uns=romUnsPerm();
@@ -1766,21 +1766,19 @@ function romFormCriar(){
   const oSel=r.selOid?osDe(+r.selOid):null;
   const tam=oSel?tamanhosComSaldo(oSel,r.origem):[];
   const es=oSel?etapasOs(oSel):[];
-  const maxQ=(oSel&&r.selN)?romSaldo(oSel.id,+r.selN,r.origem):0;
   return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Novo romaneio</h3><button type="button" class="btn g" data-act="romCancelNovo">${ic('x')}Fechar</button></div>
   <div class="grid g2">
    <label class="f">Unidade de origem<select data-chg="romOrigem">${uns.map(([u,l])=>`<option value="${esc(u)}" ${r.origem===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
    <label class="f">Unidade de destino<select data-chg="romDestino"><option value="">Selecione…</option>${uns.filter(x=>x[0]!==r.origem).map(([u,l])=>`<option value="${esc(u)}" ${r.destino===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
   </div>
   <label class="f">Responsável pela expedição<input data-chg="romAutor" value="${esc(r.autor)}"></label>
-  <div class="glass" style="padding:12px;background:var(--glass-2)"><div class="grid g2" style="margin-bottom:10px">
-   <label class="f">OS (só com saldo na origem)<select data-chg="romSelOid"><option value="">Selecione…</option>${osOr.map(o=>`<option value="${o.id}" ${r.selOid==o.id?'selected':''}>${esc(o.codigo)} · ${esc((prodDe(o.pid)||{}).nome||'')} ${esc(o.cor)}</option>`).join('')}</select></label>
-   <label class="f">Tamanho<select data-chg="romSelN" ${tam.length?'':'disabled'}><option value="">Selecione…</option>${tam.map(n=>`<option value="${n}" ${+r.selN===n?'selected':''}>${n} · saldo ${romSaldo(oSel.id,n,r.origem)}</option>`).join('')}</select></label></div>
-   <div class="grid g2">
-    <label class="f">Quantidade a enviar${maxQ?` <span class="faint">(máx. ${maxQ})</span>`:''}<input type="number" id="romQtd" min="1" max="${maxQ||1}" value="${maxQ?Math.min(1,maxQ):''}" ${maxQ?'':'disabled'}></label>
-    <label class="f">Etapa anterior (opcional)<select id="romEtapaAnt" ${es.length?'':'disabled'}><option value="">—</option>${es.map(e=>`<option value="${esc(e.nome)}">${esc(e.nome)}</option>`).join('')}</select></label>
-   </div>
-   <div class="row" style="justify-content:flex-end;margin-top:10px"><button type="button" class="btn primary" data-act="romAddItem" ${maxQ?'':'disabled'}>${ic('plus')}Adicionar item</button></div></div>
+  <div class="glass" style="padding:12px;background:var(--glass-2)">
+   <label class="f">OS (toda OS com saldo na origem, em andamento ou concluída)<select data-chg="romSelOid"><option value="">Selecione…</option>${osOr.map(o=>`<option value="${o.id}" ${r.selOid==o.id?'selected':''}>${esc(o.codigo)} · ${esc((prodDe(o.pid)||{}).nome||'')} ${esc(o.cor)} (${o.status})</option>`).join('')}</select></label>
+   ${oSel?`<div style="margin-top:10px"><div class="row between" style="margin-bottom:8px"><span class="sm muted">Informe a quantidade de cada tamanho que vai para ${esc(unNome(r.destino)||'o destino')}</span><button type="button" class="btn" data-act="romMarcarTudo">${ic('check')}Marcar tudo (OS inteira)</button></div>
+    <div class="grid g3" style="gap:8px">${tam.map(n=>`<label class="f" style="gap:4px"><span class="sm muted">Tam. ${n} <span class="faint">(saldo ${romSaldo(oSel.id,n,r.origem)})</span></span><input type="number" class="romq" data-n="${n}" min="0" max="${romSaldo(oSel.id,n,r.origem)}" value="0"></label>`).join('')}</div>
+    <label class="f" style="margin-top:10px">Etapa anterior (opcional, aplica a todos os tamanhos marcados)<select id="romEtapaAnt" ${es.length?'':'disabled'}><option value="">—</option>${es.map(e=>`<option value="${esc(e.nome)}">${esc(e.nome)}</option>`).join('')}</select></label>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button type="button" class="btn primary" data-act="romAddItens">${ic('plus')}Adicionar estes tamanhos</button></div></div>`:''}
+  </div>
   ${r.itens.length?`<div class="tw"><table><thead><tr><th>OS</th><th>Tamanho</th><th class="c">Qtd</th><th>Etapa anterior</th><th class="r"></th></tr></thead><tbody>
    ${r.itens.map((it,i)=>`<tr><td><b>${esc((osDe(it.oid)||{}).codigo||'?')}</b></td><td>${it.n}</td><td class="c num">${ni(it.qtd)}</td><td class="muted">${esc(it.etapaAnt||'-')}</td><td class="r"><button type="button" class="ib del" aria-label="Remover item" data-act="romRmItem" data-i="${i}">${ic('trash')}</button></td></tr>`).join('')}
    </tbody></table></div>`:'<p class="sm faint">Nenhum item adicionado ainda.</p>'}
@@ -1813,14 +1811,24 @@ V.transf=()=>{
 Object.assign(A,{
   romNovo(){romNovo()},
   romCancelNovo(){ui.rom=null;draw(true)},
-  romAddItem(){
-    const r=ui.rom;if(!r||!r.selOid||!r.selN){toast('Escolha a OS e o tamanho.');return}
-    const o=osDe(+r.selOid),n=+r.selN,max=romSaldo(o.id,n,r.origem),qtd=parseInt($('#romQtd').value);
-    if(!(qtd>0)){toast('Informe uma quantidade válida.');return}
-    if(qtd>max){toast('Só há '+max+' unidade(s) disponível(is) nesse tamanho, nessa unidade.');return}
+  romMarcarTudo(){
+    document.querySelectorAll('input.romq').forEach(i=>{i.value=i.max});
+  },
+  romAddItens(){
+    const r=ui.rom;if(!r||!r.selOid){toast('Escolha a OS.');return}
+    const o=osDe(+r.selOid);if(!o)return;
     const etapaAnt=($('#romEtapaAnt')||{}).value||'';
-    r.itens.push({oid:o.id,n,qtd,etapaAnt});
-    r.selOid='';r.selN='';draw(true);
+    const add=[];let erro='';
+    document.querySelectorAll('input.romq').forEach(i=>{
+      const n=+i.dataset.n,qtd=parseInt(i.value)||0,max=romSaldo(o.id,n,r.origem);
+      if(qtd<0||qtd>max){erro='Quantidade inválida no tamanho '+n+' (máx. '+max+').';return}
+      if(qtd>0)add.push({oid:o.id,n,qtd,etapaAnt});
+    });
+    if(erro){toast(erro);return}
+    if(!add.length){toast('Informe ao menos uma quantidade maior que zero.');return}
+    r.itens.push(...add);
+    r.selOid='';draw(true);
+    toast(add.length+' tamanho(s) adicionado(s).');
   },
   romRmItem(d){ui.rom.itens.splice(+d.i,1);draw(true)},
   romSalvar(){
@@ -1909,11 +1917,10 @@ Object.assign(A,{
   romPdf(d){exportRomaneioPdf(+d.id)}
 });
 Object.assign(C,{
-  romOrigem(el){ui.rom.origem=el.value;if(ui.rom.destino===el.value)ui.rom.destino='';ui.rom.selOid='';ui.rom.selN='';draw(true)},
+  romOrigem(el){ui.rom.origem=el.value;if(ui.rom.destino===el.value)ui.rom.destino='';ui.rom.selOid='';draw(true)},
   romDestino(el){ui.rom.destino=el.value;draw(true)},
   romAutor(el){ui.rom.autor=el.value},
-  romSelOid(el){ui.rom.selOid=el.value;ui.rom.selN='';draw(true)},
-  romSelN(el){ui.rom.selN=el.value;draw(true)}
+  romSelOid(el){ui.rom.selOid=el.value;draw(true)}
 });
 async function exportRomaneioPdf(id){
   const r=romDe(id);if(!r)return;

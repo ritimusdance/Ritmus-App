@@ -135,9 +135,9 @@ html,body{overflow-x:clip}
 .hb .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .prod{display:flex;flex-direction:column;gap:12px;container-type:inline-size}
-.et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.et{display:grid;grid-template-columns:minmax(0,1fr) minmax(84px,108px) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
 .et input{padding:5px 8px;text-align:center;font-variant-numeric:tabular-nums}
-.add-et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px auto;gap:8px}
+.add-et{display:grid;grid-template-columns:minmax(84px,108px) minmax(96px,132px) minmax(0,1fr) 76px auto;gap:8px}
 .et select,.add-et select{padding:5px 8px;font-size:12.5px}
 [hidden]{display:none!important}
 @container (max-width:480px){.et{grid-template-columns:minmax(0,1fr) 76px 24px 32px}.et select{order:5;grid-column:1/-1}.add-et{grid-template-columns:minmax(0,1fr) 76px}.add-et select,.add-et .btn{grid-column:1/-1}}
@@ -482,8 +482,8 @@ V.funcs=()=>{
 V.prods=()=>`<div class="stack">${header('Produtos e etapas','Cada etapa vale pontos. Pontuação = quantidade concluída × pontos da etapa',`<button class="btn primary" data-act="newProd">${ic('plus')}Novo produto</button>`)}
  <div class="grid g2">${S.produtos.map(p=>{const es=S.etapas.filter(e=>e.pid===p.id).sort((a,b)=>a.ordem-b.ordem);
   return `<div class="glass prod"><div class="row between"><h3>${esc(p.nome)} <span class="faint sm">inicial ${esc(inicialDe(p))}</span></h3><span><button class="ib" aria-label="Renomear ${esc(p.nome)}" data-act="editProd" data-id="${p.id}">${ic('pencil')}</button><button class="ib del" aria-label="Remover ${esc(p.nome)}" data-act="delProd" data-id="${p.id}">${ic('trash')}</button></span></div>
-  <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
-  <div class="add-et"><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div>`}).join('')||'<div class="glass empty">Nenhum produto cadastrado.</div>'}</div></div>`;
+  <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Grupo da etapa ${esc(e.nome)}" data-chg="etGrupo" data-id="${e.id}"><option value="costura" ${(!e.grupo||e.grupo==='costura')?'selected':''}>Costura</option><option value="montagem" ${e.grupo==='montagem'?'selected':''}>Montagem</option></select><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
+  <div class="add-et"><select id="eg-${p.id}" aria-label="Grupo da nova etapa" style="order:0"><option value="costura">Costura</option><option value="montagem">Montagem</option></select><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div>`}).join('')||'<div class="glass empty">Nenhum produto cadastrado.</div>'}</div></div>`;
 
 V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
@@ -1066,7 +1066,7 @@ const A={
   addEt(d){const pid=+d.id,nome=String($('#en-'+pid).value).trim(),pts=parseFloat($('#ep-'+pid).value);
     if(!nome){toast('Digite o nome da etapa.');return}
     const ordem=Math.max(0,...S.etapas.filter(e=>e.pid===pid).map(e=>e.ordem))+1;
-    S.etapas.push({id:uid(),pid,nome,ordem,pontos:isNaN(pts)?0:pts,setor:($('#es-'+pid)||{}).value||''});commit('Etapa adicionada.',true)},
+    S.etapas.push({id:uid(),pid,nome,ordem,pontos:isNaN(pts)?0:pts,setor:($('#es-'+pid)||{}).value||'',grupo:($('#eg-'+pid)||{}).value||'costura'});commit('Etapa adicionada.',true)},
   delEt(d){const e=etapaDe(+d.id);confirmBox(`Remover a etapa <b>${esc(e.nome)}</b>? Os lançamentos dela serão apagados.`,'Remover',()=>{
     S.etapas=S.etapas.filter(x=>x.id!==e.id);S.aps=S.aps.filter(a=>a.eid!==e.id);S.perdas=S.perdas.filter(p=>p.eid!==e.id);commit('Etapa removida.',true)})},
   newOs(){formOs()},
@@ -1317,7 +1317,8 @@ Object.assign(A,{
 });
 Object.assign(C,{
   setorSel(el){const b=$('#novoSetorBox');if(!b)return;b.hidden=el.value!=='__novo__';if(!b.hidden){const i=b.querySelector('input');if(i)i.focus()}},
-  etSetor(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.setor=el.value;persist();toast('Setor da etapa atualizado.')}
+  etSetor(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.setor=el.value;persist();toast('Setor da etapa atualizado.')},
+  etGrupo(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.grupo=el.value;persist();toast('Grupo da etapa atualizado.')}
 });
 Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPlanilha(f)}});
 
@@ -1742,10 +1743,27 @@ const romDe=id=>by(S.romaneios,id);
 const romClassificado=r=>r.itens.every(it=>it.qtdRecebida!=null&&(it.classif||[]).reduce((s,c)=>s+c.qtd,0)>=it.qtdRecebida);
 const romUnsPerm=()=>eMaster()?unidades():unidades().filter(x=>unPermitidas().includes(x[0]));
 const romNumero=()=>{const n=Math.max(0,...S.romaneios.map(r=>parseInt(String(r.numero||'').replace(/\D/g,''))||0))+1;return 'RM'+String(n).padStart(4,'0')};
+function romMergeItem(r,it){const ex=r.itens.find(x=>x.oid===it.oid&&x.n===it.n);if(ex)ex.qtd=it.qtd;else r.itens.push(it)}
+/* última etapa do grupo "costura" antes da Montagem começar (o ponto real de handoff entre unidades).
+   Se nenhuma etapa for marcada como Montagem, usa a última etapa (produto ainda não separado em grupos). */
+function fimDaCostura(es){
+  for(let i=0;i<es.length;i++)if(es[i].grupo==='montagem')return i>0?es[i-1]:null;
+  return es.length?es[es.length-1]:null;
+}
+/* quantidade já pronta de um tamanho de uma OS: se concluída, a grade inteira; se em andamento, só o que
+   já terminou a Costura (produção real, não a grade toda) — é o que pode viajar pra outra unidade montar */
+function prontoBase(o,n){
+  const bruto=Math.max(0,(Number(o.grade[n])||0)-perdaOs(o.id,n));
+  if(o.status==='Concluída')return bruto;
+  const es=etapasOs(o);if(!es.length)return bruto;
+  const bnd=fimDaCostura(es);if(!bnd)return 0;
+  const done=doneMap(o,bnd.id)[n]||0;
+  return Math.max(0,Math.min(bruto,done));
+}
 /* saldo de um tamanho de uma OS fisicamente presente numa unidade, somando o histórico de romaneios não cancelados */
 function romSaldo(oid,n,un){
   const o=osDe(oid);if(!o)return 0;
-  let v=(uOf(o)===un)?Math.max(0,(Number(o.grade[n])||0)-perdaOs(oid,n)):0;
+  let v=(uOf(o)===un)?prontoBase(o,n):0;
   S.romaneios.forEach(r=>{
     if(r.status==='cancelado'||r.status==='rascunho'||r.status==='aguardando')return;
     (r.itens||[]).forEach(it=>{
@@ -1759,14 +1777,15 @@ function romSaldo(oid,n,un){
 const osComSaldoEm=un=>S.os.filter(o=>Object.keys(o.grade).some(n=>romSaldo(o.id,+n,un)>0));
 const tamanhosComSaldo=(o,un)=>Object.keys(o.grade).map(Number).filter(n=>romSaldo(o.id,n,un)>0).sort((a,b)=>b-a);
 function romNovo(){ui.rom={origem:(unPermitidas()[0]||''),destino:'',autor:meuNome(),itens:[],selOid:''};draw(true)}
-function estoquePorEtapa(un){
-  const out={};
+/* soma, por produto > cor > tamanho, quanto está parado em Costura e quanto está parado em Montagem,
+   somando TODAS as OS (em andamento e concluídas) dessa unidade que tenham aquele produto+cor+tamanho */
+function estoquePorGrupo(un){
+  const prod={};
   S.os.forEach(o=>{
     if(uOf(o)!==un)return;
     const es=etapasOs(o).slice().sort((a,b)=>a.ordem-b.ordem);
     if(!es.length)return;
     const p=prodDe(o.pid);if(!p)return;
-    const key=p.id+'|'+o.cor;
     Object.keys(o.grade).map(Number).forEach(n=>{
       es.forEach((e,i)=>{
         const next=es[i+1];
@@ -1776,46 +1795,67 @@ function estoquePorEtapa(un){
         const transfE=S.romaneios.filter(r=>!['cancelado','rascunho','aguardando'].includes(r.status)&&r.origem===un)
           .reduce((s,r)=>s+r.itens.filter(it=>it.oid===o.id&&it.n===n&&it.etapaAnt===e.nome).reduce((s2,it)=>s2+it.qtdEnviada,0),0);
         const parado=Math.max(0,doneE-doneNext-perdaE-transfE);
-        if(parado>0){
-          const g=out[key]||(out[key]={produto:p.nome,cor:o.cor,total:0,etapas:{}});
-          g.etapas[e.nome]=(g.etapas[e.nome]||0)+parado;g.total+=parado;
-        }
+        if(parado<=0)return;
+        const grupo=e.grupo==='montagem'?'montagem':'costura';
+        const po=prod[p.id]||(prod[p.id]={produto:p.nome,cores:{}});
+        const co=po.cores[o.cor]||(po.cores[o.cor]={});
+        const to=co[n]||(co[n]={costura:0,montagem:0});
+        to[grupo]+=parado;
       });
     });
   });
-  return Object.values(out).sort((a,b)=>a.produto<b.produto?-1:a.produto>b.produto?1:a.cor<b.cor?-1:1);
+  return Object.values(prod).sort((a,b)=>a.produto<b.produto?-1:1);
 }
 function estoquePainel(){
   const uns=romUnsPerm(),un=ui.estoqueUn||unPermitidas()[0]||uns[0][0];
-  const L=estoquePorEtapa(un);
-  return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Estoque em processo, por etapa</h3><button type="button" class="btn g" data-act="estoqueFechar">${ic('x')}Fechar</button></div>
+  const L=estoquePorGrupo(un);
+  const secao=po=>{
+    const linhas=Object.entries(po.cores).flatMap(([cor,tams])=>Object.entries(tams).sort((a,b)=>+b[0]-+a[0]).map(([n,q])=>
+      `<tr><td>${esc(cor)}</td><td>${n}</td><td class="c num">${q.costura?ni(q.costura):'-'}</td><td class="c num">${q.montagem?ni(q.montagem):'-'}</td></tr>`)).join('');
+    const totCost=Object.values(po.cores).reduce((s,tams)=>s+Object.values(tams).reduce((s2,q)=>s2+q.costura,0),0);
+    const totMon=Object.values(po.cores).reduce((s,tams)=>s+Object.values(tams).reduce((s2,q)=>s2+q.montagem,0),0);
+    return `<div class="glass" style="padding:14px"><div class="row between" style="margin-bottom:6px"><h4 style="margin:0">${esc(po.produto)}</h4><span class="sm muted">${ni(totCost)} pç prontas pra montagem · ${ni(totMon)} pç montadas</span></div>
+    <div class="tw"><table><thead><tr><th>Cor</th><th>Tam.</th><th class="c">Costura (pronto p/ montar)</th><th class="c">Montagem (acabado)</th></tr></thead><tbody>${linhas}</tbody></table></div></div>`;
+  };
+  return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Estoque de produto em processo</h3><button type="button" class="btn g" data-act="estoqueFechar">${ic('x')}Fechar</button></div>
   <label class="f" style="max-width:280px">Unidade<select data-chg="estoqueUn">${uns.map(([u,l])=>`<option value="${esc(u)}" ${un===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
-  <p class="sm faint">Quantidade já produzida em cada etapa que ainda não avançou para a etapa seguinte, nem foi transferida. É o que está disponível agora para continuar o trabalho nessa unidade.</p>
-  ${L.length?`<div class="tw"><table><thead><tr><th>Produto</th><th>Cor</th><th>Etapa</th><th class="c">Quantidade pronta</th></tr></thead><tbody>
-   ${L.flatMap(g=>Object.entries(g.etapas).map(([et,q])=>`<tr><td><b>${esc(g.produto)}</b></td><td>${esc(g.cor)}</td><td>${esc(et)}</td><td class="c num">${ni(q)}</td></tr>`)).join('')}
-   </tbody></table></div>`:'<div class="glass empty">Nada parado em nenhuma etapa nessa unidade agora.</div>'}</div>`;
+  <p class="sm faint">Soma todas as OS em andamento e concluídas dessa unidade. "Costura" é tudo que já passou pelas etapas desse grupo e ainda não foi pra Montagem nem foi transferido — é o que está disponível pra abrir uma OS de Montagem agora.</p>
+  ${L.length?L.map(secao).join(''):'<div class="glass empty">Nada em estoque nessa unidade agora.</div>'}</div>`;
 }
 
 function romItensPeca(it){return ni(it.qtdEnviada)+' pç'}
+function romOsGrid(o,r){
+  const tam=tamanhosComSaldo(o,r.origem),es=etapasOs(o),bnd=fimDaCostura(es);
+  return `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+    <div class="row between" style="margin-bottom:8px"><span class="sm muted">Quantidade já pronta (terminou a Costura), por tamanho</span><button type="button" class="btn" data-act="romMarcarTudo">${ic('check')}Marcar tudo o que está pronto</button></div>
+    <div class="grid g3" style="gap:8px">${tam.map(n=>`<label class="f" style="gap:4px"><span class="sm muted">Tam. ${n} <span class="faint">(pronto: ${romSaldo(o.id,n,r.origem)})</span></span><input type="number" class="romq" data-n="${n}" min="0" max="${romSaldo(o.id,n,r.origem)}" value="0"></label>`).join('')}</div>
+    <label class="f" style="margin-top:10px">Etapa de onde está saindo<select id="romEtapaAnt" ${es.length?'':'disabled'}>${es.map(e=>`<option value="${esc(e.nome)}" ${bnd&&e.id===bnd.id?'selected':''}>${esc(e.nome)}</option>`).join('')||'<option value="">—</option>'}</select></label>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button type="button" class="btn primary" data-act="romAddItens" data-id="${o.id}">${ic('plus')}Adicionar estes tamanhos</button></div></div>`;
+}
 function romFormCriar(){
   const r=ui.rom,uns=romUnsPerm();
-  const osOr=r.origem?osComSaldoEm(r.origem):[];
-  const oSel=r.selOid?osDe(+r.selOid):null;
-  const tam=oSel?tamanhosComSaldo(oSel,r.origem):[];
-  const es=oSel?etapasOs(oSel):[];
+  const osOr=(r.origem?osComSaldoEm(r.origem):[]).slice().sort((a,b)=>(a.status==='Concluída')===(b.status==='Concluída')?(b.codigo<a.codigo?-1:1):(a.status==='Concluída'?-1:1));
+  const cards=osOr.map(o=>{
+    const p=prodDe(o.pid),concl=o.status==='Concluída';
+    const totalPronto=Object.keys(o.grade).map(Number).reduce((s,n)=>s+romSaldo(o.id,n,r.origem),0);
+    const aberto=r.selOid==o.id;
+    return `<div class="glass" style="padding:12px">
+    <div class="row between" style="flex-wrap:wrap;gap:8px">
+     <div><b>${esc(o.codigo)}</b> <span class="muted">${esc(p?p.nome:'')} ${esc(o.cor)}</span> <span class="pill ${concl?'ok':'warn'}">${concl?'Concluída':'Em andamento'}</span></div>
+     <div class="row" style="gap:10px;align-items:center"><span class="sm muted">${ni(totalPronto)} pç pronta(s)</span>
+      ${concl?`<button type="button" class="btn primary" data-act="romTransferirTudo" data-id="${o.id}">${ic('plus')}Transferir tudo</button>`
+             :`<button type="button" class="btn ${aberto?'primary':''}" data-act="romAbrirOs" data-id="${o.id}">${ic('target')}${aberto?'Fechar':'Selecionar quantidades'}</button>`}
+     </div></div>
+    ${(!concl&&aberto)?romOsGrid(o,r):''}
+    </div>`;
+  }).join('')||'<div class="glass empty">Nenhuma OS com saldo pronto nessa unidade.</div>';
   return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Novo romaneio</h3><button type="button" class="btn g" data-act="romCancelNovo">${ic('x')}Fechar</button></div>
   <div class="grid g2">
    <label class="f">Unidade de origem<select data-chg="romOrigem">${uns.map(([u,l])=>`<option value="${esc(u)}" ${r.origem===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
    <label class="f">Unidade de destino<select data-chg="romDestino"><option value="">Selecione…</option>${uns.filter(x=>x[0]!==r.origem).map(([u,l])=>`<option value="${esc(u)}" ${r.destino===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
   </div>
   <label class="f">Responsável pela expedição<input data-chg="romAutor" value="${esc(r.autor)}"></label>
-  <div class="glass" style="padding:12px;background:var(--glass-2)">
-   <label class="f">OS (toda OS com saldo na origem, em andamento ou concluída)<select data-chg="romSelOid"><option value="">Selecione…</option>${osOr.map(o=>`<option value="${o.id}" ${r.selOid==o.id?'selected':''}>${esc(o.codigo)} · ${esc((prodDe(o.pid)||{}).nome||'')} ${esc(o.cor)} (${o.status})</option>`).join('')}</select></label>
-   ${oSel?`<div style="margin-top:10px"><div class="row between" style="margin-bottom:8px"><span class="sm muted">Informe a quantidade de cada tamanho que vai para ${esc(unNome(r.destino)||'o destino')}</span><button type="button" class="btn" data-act="romMarcarTudo">${ic('check')}Marcar tudo (OS inteira)</button></div>
-    <div class="grid g3" style="gap:8px">${tam.map(n=>`<label class="f" style="gap:4px"><span class="sm muted">Tam. ${n} <span class="faint">(saldo ${romSaldo(oSel.id,n,r.origem)})</span></span><input type="number" class="romq" data-n="${n}" min="0" max="${romSaldo(oSel.id,n,r.origem)}" value="0"></label>`).join('')}</div>
-    <label class="f" style="margin-top:10px">Etapa anterior (opcional, aplica a todos os tamanhos marcados)<select id="romEtapaAnt" ${es.length?'':'disabled'}><option value="">—</option>${es.map(e=>`<option value="${esc(e.nome)}">${esc(e.nome)}</option>`).join('')}</select></label>
-    <div class="row" style="justify-content:flex-end;margin-top:10px"><button type="button" class="btn primary" data-act="romAddItens">${ic('plus')}Adicionar estes tamanhos</button></div></div>`:''}
-  </div>
+  <div class="stack" style="gap:10px">${cards}</div>
   ${r.itens.length?`<div class="tw"><table><thead><tr><th>OS</th><th>Tamanho</th><th class="c">Qtd</th><th>Etapa anterior</th><th class="r"></th></tr></thead><tbody>
    ${r.itens.map((it,i)=>`<tr><td><b>${esc((osDe(it.oid)||{}).codigo||'?')}</b></td><td>${it.n}</td><td class="c num">${ni(it.qtd)}</td><td class="muted">${esc(it.etapaAnt||'-')}</td><td class="r"><button type="button" class="ib del" aria-label="Remover item" data-act="romRmItem" data-i="${i}">${ic('trash')}</button></td></tr>`).join('')}
    </tbody></table></div>`:'<p class="sm faint">Nenhum item adicionado ainda.</p>'}
@@ -1851,12 +1891,12 @@ Object.assign(A,{
   estoqueAbrir(){ui.estoqueOn=!ui.estoqueOn;draw(true)},
   estoqueFechar(){ui.estoqueOn=false;draw(true)},
   romCancelNovo(){ui.rom=null;draw(true)},
+  romAbrirOs(d){const id=+d.id;ui.rom.selOid=(ui.rom.selOid==id)?'':id;draw(true)},
   romMarcarTudo(){
     document.querySelectorAll('input.romq').forEach(i=>{i.value=i.max});
   },
-  romAddItens(){
-    const r=ui.rom;if(!r||!r.selOid){toast('Escolha a OS.');return}
-    const o=osDe(+r.selOid);if(!o)return;
+  romAddItens(d){
+    const r=ui.rom,o=osDe(+d.id);if(!r||!o)return;
     const etapaAnt=($('#romEtapaAnt')||{}).value||'';
     const add=[];let erro='';
     document.querySelectorAll('input.romq').forEach(i=>{
@@ -1866,9 +1906,18 @@ Object.assign(A,{
     });
     if(erro){toast(erro);return}
     if(!add.length){toast('Informe ao menos uma quantidade maior que zero.');return}
-    r.itens.push(...add);
+    add.forEach(it=>romMergeItem(r,it));
     r.selOid='';draw(true);
     toast(add.length+' tamanho(s) adicionado(s).');
+  },
+  romTransferirTudo(d){
+    const r=ui.rom,o=osDe(+d.id);if(!r||!o)return;
+    const es=etapasOs(o),ultima=es.length?es[es.length-1].nome:'';
+    const add=Object.keys(o.grade).map(Number).map(n=>({oid:o.id,n,qtd:romSaldo(o.id,n,r.origem),etapaAnt:ultima})).filter(it=>it.qtd>0);
+    if(!add.length){toast('Essa OS não tem saldo disponível na origem.');return}
+    add.forEach(it=>romMergeItem(r,it));
+    draw(true);
+    toast(o.codigo+': toda a quantidade pronta foi adicionada ('+add.reduce((s,it)=>s+it.qtd,0)+' pç).');
   },
   romRmItem(d){ui.rom.itens.splice(+d.i,1);draw(true)},
   romSalvar(){
@@ -1960,8 +2009,7 @@ Object.assign(C,{
   romOrigem(el){ui.rom.origem=el.value;if(ui.rom.destino===el.value)ui.rom.destino='';ui.rom.selOid='';draw(true)},
   estoqueUn(el){ui.estoqueUn=el.value;draw(true)},
   romDestino(el){ui.rom.destino=el.value;draw(true)},
-  romAutor(el){ui.rom.autor=el.value},
-  romSelOid(el){ui.rom.selOid=el.value;draw(true)}
+  romAutor(el){ui.rom.autor=el.value}
 });
 async function exportRomaneioPdf(id){
   const r=romDe(id);if(!r)return;

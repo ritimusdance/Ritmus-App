@@ -11,6 +11,38 @@ table.estGrid{border-collapse:separate;border-spacing:0 3px;min-width:1560px;fon
 .estGrid td.tot{color:#fbbf24;border-left:1px solid var(--line)}
 .estGrid tfoot td{background:none;color:var(--fg-3);font-weight:500;font-size:11.5px}
 .estGrid tfoot td:first-child{background:none;border:0;font-size:11.5px}
+
+/* ---- tipos de OS e estoque ---- */
+.tipo{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;border:1px solid var(--line)}
+.tipo.costura{color:#fbbf24;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.38)}
+.tipo.montagem{color:#60a5fa;background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.4)}
+tr.os-costura td:first-child{box-shadow:inset 3px 0 0 #fbbf24}
+tr.os-montagem td:first-child{box-shadow:inset 3px 0 0 #60a5fa}
+.glass.os-costura{border-left:3px solid #fbbf24}
+.glass.os-montagem{border-left:3px solid #60a5fa}
+.chip.costura{border-color:rgba(251,191,36,.4)}
+.chip.montagem{border-color:rgba(96,165,250,.45)}
+.chip.costura.on{background:rgba(251,191,36,.16);border-color:#fbbf24}
+.chip.montagem.on{background:rgba(96,165,250,.16);border-color:#60a5fa}
+.estGrid td.ed{cursor:pointer}
+.estGrid td.ed:hover{background:rgba(251,191,36,.16);color:#fbbf24}
+.estGrid td.adj{box-shadow:inset 0 -2px 0 rgba(251,191,36,.6)}
+.estpop{position:fixed;z-index:70;width:190px;background:#101014;border:2px solid #fbbf24;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 18px 40px -10px rgba(0,0,0,.8)}
+.estpop input{text-align:center;font-size:16px;font-weight:600}
+.estpop .btn{justify-content:center;background:var(--grad);color:#fff;border:0;text-transform:uppercase;letter-spacing:.04em;font-weight:700;font-size:12px}
+.estfab{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.estfab-b{width:56px;height:56px;border-radius:50%;border:0;background:var(--grad);color:#fff;display:grid;place-items:center;box-shadow:0 12px 30px -8px rgba(199,67,117,.8)}
+.estfab-b svg{width:26px;height:26px}
+.estfab-p{background:#101014;border:1px solid var(--line-2);border-radius:18px;overflow:hidden;min-width:230px;box-shadow:0 20px 50px -12px rgba(0,0,0,.9)}
+.estfab-p button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;background:none;border:0;border-top:1px solid var(--line);color:var(--fg);font-size:14px;text-align:left}
+.estfab-p button:first-child{border-top:0}
+.estfab-p button:hover{background:rgba(255,255,255,.05)}
+.escolha{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.escolha button{padding:22px 12px;border-radius:16px;background:var(--glass);border:1px solid var(--line-2);color:var(--fg);font-size:16px;font-weight:600;display:flex;flex-direction:column;gap:6px;align-items:center}
+.escolha button small{font-size:12px;font-weight:400;color:var(--fg-3);text-align:center}
+.escolha button.c:hover{border-color:#fbbf24}.escolha button.m:hover{border-color:#60a5fa}
+.escolha button.c b{color:#fbbf24}.escolha button.m b{color:#60a5fa}
+@media(max-width:480px){.escolha{grid-template-columns:1fr}}
 </style>
 <title>Ritmus Produção</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -147,9 +179,9 @@ html,body{overflow-x:clip}
 .hb .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .prod{display:flex;flex-direction:column;gap:12px;container-type:inline-size}
-.et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,116px) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
 .et input{padding:5px 8px;text-align:center;font-variant-numeric:tabular-nums}
-.add-et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px auto;gap:8px}
+.add-et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) minmax(96px,116px) 76px auto;gap:8px}
 .et select,.add-et select{padding:5px 8px;font-size:12.5px}
 [hidden]{display:none!important}
 @container (max-width:480px){.et{grid-template-columns:minmax(0,1fr) 76px 24px 32px}.et select{order:5;grid-column:1/-1}.add-et{grid-template-columns:minmax(0,1fr) 76px}.add-et select,.add-et .btn{grid-column:1/-1}}
@@ -284,6 +316,7 @@ right:'<path d="m9 18 6-6-6-6"/>',
 max:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
 download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
 upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+gear:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
 award:'<circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/>'
 };
 const ic=n=>'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>';
@@ -443,7 +476,7 @@ const W={
    pts_setor:{g:'Gráficos',t:'Pontos por setor (30 dias)',sz:'md',r:()=>{const de=addDays(today(),-29),ate=today();const m=grpSum(S.aps.filter(a=>a.d>=de&&a.d<=ate).map(a=>[a,ptsAp(a)]),a=>(funcDe(a.fid)||{}).setor);return cardH('Pontos por setor','30 dias',hbars(m.map(([n,v])=>[n,Math.round(v)])))}},
 os_and:{g:'Tabelas',t:'OS em andamento',sz:'lg',r:()=>{const emAnd=S.os.filter(o=>o.status==='Em andamento');
    return `<div class="glass flush"><div style="padding:18px 20px 6px"><h3>OS em andamento</h3></div><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Progresso</th></tr></thead><tbody>
-   ${emAnd.map(o=>{const p=osProgress(o);return `<tr><td><b>${esc(o.codigo)}</b></td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}</td><td style="min-width:150px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span></div></td></tr>`}).join('')||'<tr><td colspan="4" class="empty">Nenhuma OS em andamento.</td></tr>'}</tbody></table></div></div>`}}
+   ${emAnd.map(o=>{const p=osProgress(o);return `<tr class="os-${tipoOs(o)}"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}</td><td style="min-width:150px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span></div></td></tr>`}).join('')||'<tr><td colspan="4" class="empty">Nenhuma OS em andamento.</td></tr>'}</tbody></table></div></div>`}}
 };
 const CM={pontos:'Pontos',pecas:'Peças',perdas:'Peças perdidas',faltas:'Faltas'};
 const CG={dia:'dia',func:'funcionário',setor:'setor',etapa:'etapa',produto:'produto',os:'OS',motivo:'motivo da falta'};
@@ -494,14 +527,14 @@ V.funcs=()=>{
 V.prods=()=>`<div class="stack">${header('Produtos e etapas','Cada etapa vale pontos. Pontuação = quantidade concluída × pontos da etapa',`<button class="btn primary" data-act="newProd">${ic('plus')}Novo produto</button>`)}
  <div class="grid g2">${S.produtos.map(p=>{const es=S.etapas.filter(e=>e.pid===p.id).sort((a,b)=>a.ordem-b.ordem);
   return `<div class="glass prod"><div class="row between"><h3>${esc(p.nome)} <span class="faint sm">inicial ${esc(inicialDe(p))}</span></h3><span><button class="ib" aria-label="Renomear ${esc(p.nome)}" data-act="editProd" data-id="${p.id}">${ic('pencil')}</button><button class="ib del" aria-label="Remover ${esc(p.nome)}" data-act="delProd" data-id="${p.id}">${ic('trash')}</button></span></div>
-  <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
-  <div class="add-et"><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div>`}).join('')||'<div class="glass empty">Nenhum produto cadastrado.</div>'}</div></div>`;
+  <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Tipo da etapa ${esc(e.nome)}" data-chg="etTipo" data-id="${e.id}"><option value="costura" ${etapaTipo(e)==='costura'?'selected':''}>Costura</option><option value="montagem" ${etapaTipo(e)==='montagem'?'selected':''}>Montagem</option></select><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
+  <div class="add-et"><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><select id="et-${p.id}" aria-label="Tipo da nova etapa"><option value="costura">Costura</option><option value="montagem">Montagem</option></select><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div>`}).join('')||'<div class="glass empty">Nenhum produto cadastrado.</div>'}</div></div>`;
 
 V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
  ${S.os.map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
-  return `<tr><td><b>${esc(o.codigo)}</b>${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
-  <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'&&p<100?'<span class="pill ok">Finalizada</span>':''}</div></td>
+  return `<tr class="os-${tipoOs(o)}"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
+  <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'?'<span class="pill ok">Finalizada</span>':''}</div></td>
   <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}" ${tool('osedit')?'':'disabled'}><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
   <td class="r">${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${session.role==='dir'?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div></div>`;
 
@@ -630,14 +663,14 @@ V.ger=()=>{
   ui.gerOs=ui.gerOs.filter(id=>emAnd.some(o=>o.id===id));
   const ativos=gerFuncs();
   const t=gerDia(),hoje=today();
-  const chips=`<div><div class="sm muted" style="margin-bottom:8px">OS em andamento</div><div class="chips">${emAnd.map(o=>`<button class="chip ${ui.gerOs.includes(o.id)?'on':''}" data-act="gerOs" data-id="${o.id}">${esc(o.codigo)}</button>`).join('')||'<span class="faint">Nenhuma OS em andamento.</span>'}</div></div>`;
+  const chips=`<div><div class="sm muted" style="margin-bottom:8px">OS em andamento</div><div class="chips">${emAnd.map(o=>`<button class="chip ${tipoOs(o)==='montagem'?'montagem':'costura'} ${ui.gerOs.includes(o.id)?'on':''}" data-act="gerOs" data-id="${o.id}">${esc(o.codigo)} <span class="faint sm">${tipoOs(o)==='montagem'?'Montagem':'Costura'}</span></button>`).join('')||'<span class="faint">Nenhuma OS em andamento.</span>'}</div></div>`;
   if(!ativos.length)return `<div class="stack">${header('Lançamento do dia','')}<div class="glass stack" style="gap:14px">${chips}<div class="empty">Nenhum funcionário ativo nos setores das OS selecionadas.</div></div></div>`;
   if(!by(ativos,ui.gerF))ui.gerF=ativos[0].id;
   const f=by(ativos,ui.gerF),lock=lockMap(f.id,t);
   const blocks=emAnd.filter(o=>ui.gerOs.includes(o.id)).map(o=>{
     const es=etapasOs(o);
     const sizes=Object.keys(o.grade).filter(n=>Number(o.grade[n])>0).map(Number).sort((a,b)=>b-a);
-    return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>${esc(o.codigo)} - ${esc(o.cliente)}</h3><span class="sm faint">${esc((prodDe(o.pid)||{}).nome)} · ${esc(o.cor)} · ${sizes[0]} a ${sizes[sizes.length-1]}</span></div>
+    return `<div class="glass stack os-${tipoOs(o)==='montagem'?'montagem':'costura'}" style="gap:12px"><div class="row between"><h3>${esc(o.codigo)} ${tipoPill(o)} - ${esc(o.cliente)}</h3><span class="sm faint">${esc((prodDe(o.pid)||{}).nome)} · ${esc(o.cor)} · ${sizes[0]} a ${sizes[sizes.length-1]}</span></div>
     <div class="sheet-wrap"><table class="grade"><thead><tr><th class="st">Numeração</th>${sizes.map(n=>`<th>${n}</th>`).join('')}</tr>
     <tr class="qrow"><th class="st">Quantidade</th>${sizes.map(n=>{const lost=perdaOs(o.id,n);const left=Number(o.grade[n])-lost;return `<td><button class="qcell ${lost?'lost':''}" data-act="${tool('regperda')?'perda':'noop'}" data-o="${o.id}" data-n="${n}" title="${lost?`${lost} perdida(s). `:''}Toque para registrar perda">${left}</button></td>`}).join('')}</tr></thead>
     <tbody>${es.map(e=>{
@@ -777,7 +810,7 @@ const eAdm=()=>eMaster()||(isDir()&&(session.perms||[]).includes('adm'));
 /* ---------- unidades (Piracaia e São Paulo) ---------- */
 const unidades=()=>(S.cfg&&Array.isArray(S.cfg.unidades)&&S.cfg.unidades.length)?S.cfg.unidades:[['PIR','Piracaia'],['SP','São Paulo']];
 const unPermitidas=()=>{if(!session)return[];if(session.role==='ger')return[session.un||'PIR'];const t=tokUn(session.perms);return t.length?t:unidades().map(x=>x[0])};
-const UCOLS=['funcs','os','aps','perdas','avisos','faltas','dash'];
+const UCOLS=['funcs','os','aps','perdas','avisos','faltas','dash','estajustes'];
 const uOf=d=>(d&&d.u)||'PIR';
 const unAtual=()=>ui.un||'PIR';
 const unNome=u=>u==='ALL'?'Todas as unidades':((unidades().find(x=>x[0]===u)||[0,u])[1]);
@@ -820,6 +853,7 @@ function shellHtml(){
 }
 
 function draw(keepScroll){
+  if(session&&S&&syncStatusOs())persist();
   const y=window.scrollY;
   const nv0=document.querySelector('.nav');const nx=nv0?nv0.scrollLeft:(ui.navX||0);
   closePop();
@@ -865,7 +899,7 @@ function openPerda(btn){
 
 /* ---------- código da OS ---------- */
 const setoresAll=()=>{const out=[];const add=x=>{x=String(x||'').trim();if(x&&!out.some(y=>y.toLowerCase()===x.toLowerCase()))out.push(x)};SETORES.forEach(add);((S.cfg&&S.cfg.setores)||[]).forEach(add);(S.funcs||[]).forEach(f=>add(f.setor));return out};
-const etapasOs=o=>{const es=S.etapas.filter(e=>e.pid===o.pid).sort((a,b)=>a.ordem-b.ordem);const ss=o.setores;if(!ss||!ss.length)return es;return es.filter(e=>!e.setor||ss.includes(e.setor))};
+const etapasOs=o=>{let es=S.etapas.filter(e=>e.pid===o.pid).sort((a,b)=>a.ordem-b.ordem);if(o.tipo)es=es.filter(e=>etapaTipo(e)===o.tipo);const ss=o.setores;if(!ss||!ss.length)return es;return es.filter(e=>!e.setor||ss.includes(e.setor))};
 const ini=s=>String(s||'').trim().normalize('NFD').replace(/[̀-ͯ]/g,'').charAt(0).toUpperCase();
 const inicialDe=p=>{const v=String(p&&p.inicial||'').trim().toUpperCase();return v||ini(p&&p.nome)};
 const codeOs=(pid,cor,ped)=>{const p=prodDe(pid);return (p?inicialDe(p):'')+ini(cor)+String(Math.max(0,parseInt(ped)||0)).padStart(3,'0')};
@@ -926,7 +960,7 @@ function formOs(id){
   const pid0=o?o.pid:S.produtos[0].id;
   const nextNum=o?o.pedido:Math.max(0,...S.os.map(x=>+x.pedido||0))+1;
   const ks=o?Object.keys(o.grade).map(Number):[],hi0=ks.length?Math.max(...ks):35,lo0=ks.length?Math.min(...ks):25,DESC=SIZES.slice().reverse();
-  modal(o?'Editar OS '+o.codigo:'Nova OS',`<div class="fgrid"><label class="f">Produto<select name="pid" data-live ${o?'disabled':''}>${S.produtos.map(p=>`<option value="${p.id}" ${p.id===pid0?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+  modal(o?'Editar OS '+o.codigo:'Nova OS de Costura',`<div class="fgrid"><label class="f">Produto<select name="pid" data-live ${o?'disabled':''}>${S.produtos.map(p=>`<option value="${p.id}" ${p.id===pid0?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
    <label class="f">Cor<input name="cor" data-live placeholder="Ex: Rosa" value="${esc(o?o.cor:'')}" required></label>
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${nextNum}" required></label></div>
    <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o?o.cliente:'')}" required></label>
@@ -950,7 +984,7 @@ function formOs(id){
       S.perdas=S.perdas.filter(p=>p.oid!==o.id||grade[p.num]);
       Object.keys(drafts).forEach(k=>{if(k.split('|')[1]==o.id)drafts[k]=drafts[k].filter(n=>grade[n])});
     }else{
-      const dest=String(fd.get('un')||unAtual()),rec={id:uid(),codigo,cliente,cor,pedido,pid,grade,setores,status:'Em andamento'};
+      const dest=String(fd.get('un')||unAtual()),rec={id:uid(),codigo,cliente,cor,pedido,pid,grade,setores,status:'Em andamento',tipo:'costura'};
       if(dest!==unAtual()){criarOsOutraUnidade(rec,dest);return false}
       S.os.push(rec);
     }
@@ -1078,10 +1112,10 @@ const A={
   addEt(d){const pid=+d.id,nome=String($('#en-'+pid).value).trim(),pts=parseFloat($('#ep-'+pid).value);
     if(!nome){toast('Digite o nome da etapa.');return}
     const ordem=Math.max(0,...S.etapas.filter(e=>e.pid===pid).map(e=>e.ordem))+1;
-    S.etapas.push({id:uid(),pid,nome,ordem,pontos:isNaN(pts)?0:pts,setor:($('#es-'+pid)||{}).value||''});commit('Etapa adicionada.',true)},
+    S.etapas.push({id:uid(),pid,nome,ordem,pontos:isNaN(pts)?0:pts,setor:($('#es-'+pid)||{}).value||'',tipo:($('#et-'+pid)||{}).value||'costura'});commit('Etapa adicionada.',true)},
   delEt(d){const e=etapaDe(+d.id);confirmBox(`Remover a etapa <b>${esc(e.nome)}</b>? Os lançamentos dela serão apagados.`,'Remover',()=>{
     S.etapas=S.etapas.filter(x=>x.id!==e.id);S.aps=S.aps.filter(a=>a.eid!==e.id);S.perdas=S.perdas.filter(p=>p.eid!==e.id);commit('Etapa removida.',true)})},
-  newOs(){formOs()},
+  newOs(){escolheTipoOs()},
   editOs(d){formOs(+d.id)},
   szTog(d,el){const on=el.classList.toggle('on');el.setAttribute('aria-pressed',on)},
   szAll(){document.querySelectorAll('#qk .chip:not([hidden])').forEach(c=>{c.classList.add('on');c.setAttribute('aria-pressed','true')})},
@@ -1150,8 +1184,8 @@ const C={
 };
 
 document.addEventListener('click',e=>{
-  const pop=e.target.closest('#pf,#qf');
-  if(!pop&&!e.target.closest('[data-act=perda],[data-act=ckq]'))closePop();
+  const pop=e.target.closest('#pf,#qf,#ef');
+  if(!pop&&!e.target.closest('[data-act=perda],[data-act=ckq],[data-act=estCell]'))closePop();
   const el=e.target.closest('[data-act]');if(!el||!el.dataset.act)return;
   const fn=A[el.dataset.act];if(fn){if(el.tagName==='BUTTON'||el.tagName==='TR'||el.classList.contains('scrim')||true)fn(el.dataset,el)}
 });
@@ -1177,6 +1211,7 @@ document.addEventListener('submit',e=>{
     const vis=new Set(new FormData(f).getAll('vis').map(String));
     S.cfg.gerOcultas=ferrItems().map(x=>x[0]).filter(k=>!vis.has(k));commit('Ferramentas da gerência atualizadas.',true);
   }
+  else if(f.id==='ef'){const d=f.dataset;salvaEst(+d.p,d.c,+d.n,d.e,Math.max(0,parseInt(new FormData(f).get('qtd'))||0));closePop()}
   else if(f.id==='qf'){const d=f.dataset;applyQ(+d.f,+d.o,+d.e,+d.n,Math.max(0,Math.min(+d.rem,parseInt(new FormData(f).get('qtd'))||0)));closePop()}
   else if(f.id==='avf'){
     if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para enviar mensagens.');return}
@@ -1321,56 +1356,172 @@ async function lerPlanilha(file){
     commit([n1?n1+' OS nova(s)':'',n2?n2+' OS atualizada(s)':''].filter(Boolean).join(' e ')+'.',true);
   },true);
 }
-/* ======================= Estoque (produto finalizado, grade cor x numeração) ======================= */
-/* Quantidade finalizada de uma numeração = o MÍNIMO lançado entre todas as etapas da OS (só conta o que passou por todas).
-   Não depende do status da OS: cada numeração entra no estoque assim que a última etapa dela fecha. */
-function prontoFinal(o,n){
+/* ======================= Tipos de OS e Estoque (corte e sapatilha) ======================= */
+/* Etapa: tipo 'costura' ou 'montagem'. Etapas antigas sem tipo: as de setor/nome Cola, Montagem e Sola contam como montagem. */
+const etapaTipo=e=>e.tipo||(isParc(e)?'montagem':'costura');
+/* OS: tipo gravado na criação. OS antigas (sem tipo) são deduzidas pelas etapas do produto. 'completa' = passa por costura e montagem na mesma OS. */
+const tipoOs=o=>{
+  if(o.tipo)return o.tipo;
+  const t=new Set(S.etapas.filter(e=>e.pid===o.pid).map(etapaTipo));
+  return t.has('montagem')&&t.has('costura')?'completa':t.has('montagem')?'montagem':'costura';
+};
+const tipoPill=o=>{const t=tipoOs(o);return t==='completa'?'<span class="pill">Completa</span>':`<span class="tipo ${t}">${t==='montagem'?'Montagem':'Costura'}</span>`};
+Object.assign(C,{etTipo(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.tipo=el.value;persist();draw(true);toast('Tipo da etapa atualizado.')}});
+
+const corKey=c=>String(c||'').trim().toLowerCase();
+const ajustes=()=>S.estajustes||(S.estajustes=[]);
+const szDesc=()=>SIZES.slice().sort((a,b)=>b-a);
+const prodsOrd=()=>S.produtos.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+const valEst=(c,n)=>Math.max(0,(c.base[n]||0)+(c.adj[n]||0));
+const totEst=c=>szDesc().reduce((s,n)=>s+valEst(c,n),0);
+/* Quantidade de uma numeração que passou por TODAS as etapas da OS (o menor lançado entre elas). */
+function feitoOs(o,n){
   const es=etapasOs(o);if(!es.length)return 0;
   let m=Infinity;es.forEach(e=>{m=Math.min(m,doneMap(o,e.id)[n]||0)});
   return Number.isFinite(m)?m:0;
 }
-const estoqueFinal=(oid,n,un)=>{const o=osDe(oid);return o&&uOf(o)===un?prontoFinal(o,n):0};
-const corKey=c=>String(c||'').trim().toLowerCase();
-function estoqueGrade(){
-  const v=unAtual(),uns=v==='ALL'?unPermitidas():[v];
-  const SZ=SIZES.slice().sort((a,b)=>b-a);
-  const prods=S.produtos.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR')).map(p=>{
-    const cores=new Map(); // cor -> {nome, q:{n:qtd}}
-    S.os.filter(o=>o.pid===p.id&&uns.includes(uOf(o))).forEach(o=>{
-      const k=corKey(o.cor);if(!k)return;
-      const c=cores.get(k)||cores.set(k,{nome:String(o.cor).trim(),q:{}}).get(k);
-      Object.keys(o.grade).map(Number).forEach(n=>{
-        const q=uns.reduce((s,u)=>s+estoqueFinal(o.id,n,u),0);
-        if(q>0)c.q[n]=(c.q[n]||0)+q;
-      });
+/* R[corte|sapatilha][pid] = Map(corKey -> {nome, base:{n}, adj:{n}})
+   corte      = costura finalizada - o que as OS de Montagem já puxaram (grade inteira, ao criar a OS)
+   sapatilha  = montagem finalizada
+   Em andamento: cada numeração entra assim que todas as etapas dela terminam. */
+function estoqueCalc(uns){
+  const R={corte:{},sapatilha:{}};
+  const cel=(est,pid,cor)=>{const m=R[est][pid]||(R[est][pid]=new Map());const k=corKey(cor);return m.get(k)||m.set(k,{nome:String(cor).trim(),base:{},adj:{}}).get(k)};
+  const add=(est,pid,cor,n,v)=>{const c=cel(est,pid,cor);c.base[n]=(c.base[n]||0)+v};
+  S.os.forEach(o=>{
+    if(!uns.includes(uOf(o))||!corKey(o.cor))return;
+    cel('corte',o.pid,o.cor);cel('sapatilha',o.pid,o.cor);
+    const t=tipoOs(o);
+    Object.keys(o.grade).map(Number).forEach(n=>{
+      const f=feitoOs(o,n);
+      if(t==='costura')add('corte',o.pid,o.cor,n,f);
+      else{add('sapatilha',o.pid,o.cor,n,f);if(o.tipo==='montagem')add('corte',o.pid,o.cor,n,-(Number(o.grade[n])||0))}
     });
-    const linhas=[...cores.values()];
-    const total=linhas.reduce((s,c)=>s+Object.values(c.q).reduce((a,b)=>a+b,0),0);
-    return {p,linhas,total};
   });
-  return {SZ,prods};
+  ajustes().filter(a=>uns.includes(a.u)).forEach(a=>{cel(a.est,a.pid,a.cor).adj[a.n]=((cel(a.est,a.pid,a.cor).adj[a.n])||0)+a.delta});
+  return R;
+}
+const estUns=()=>{const v=unAtual();return v==='ALL'?unPermitidas():[v]};
+/* Entrada manual: guarda só a diferença entre o que o sistema calcula e o que a Diretoria digitou. */
+function salvaEst(pid,cor,n,est,valor){
+  if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para ajustar o estoque.');return}
+  const R=estoqueCalc([unAtual()]),m=R[est][pid],c=m&&m.get(corKey(cor));
+  const base=c?(c.base[n]||0):0;
+  const arr=ajustes(),i=arr.findIndex(a=>a.u===unAtual()&&a.pid===pid&&a.est===est&&a.n===n&&corKey(a.cor)===corKey(cor));
+  const delta=valor-base;
+  if(delta===0){if(i>=0)arr.splice(i,1)}
+  else{const rec={id:i>=0?arr[i].id:uid(),u:unAtual(),pid,cor:String(cor).trim(),n,est,delta,autor:meuNome(),em:today()};if(i>=0)arr[i]=rec;else arr.push(rec)}
+  commit('Estoque atualizado.',true);
 }
 V.estoque=()=>{
-  const {SZ,prods}=estoqueGrade();
-  if(!prods.length)return `<div class="stack">${header('Estoque','Produtos finalizados, por produto, cor e numeração')}<div class="glass empty">Nenhum produto cadastrado ainda.</div></div>`;
+  const est=ui.estTipo==='sapatilha'?'sapatilha':'corte';
+  const uns=estUns(),R=estoqueCalc(uns),SZ=szDesc();
+  const prods=prodsOrd().map(p=>{const m=R[est][p.id];const linhas=m?[...m.values()]:[];return {p,linhas,total:linhas.reduce((s,c)=>s+totEst(c),0)}});
+  const sub=est==='corte'?'Costura finalizada. É daqui que a OS de Montagem puxa as peças.':'Sapatilhas prontas, vindas das OS de Montagem finalizadas.';
+  const seg=`<div class="seg" role="tablist" aria-label="Tipo de estoque"><button role="tab" class="${est==='corte'?'on':''}" data-act="estTipo" data-k="corte">Estoque de corte</button><button role="tab" class="${est==='sapatilha'?'on':''}" data-act="estTipo" data-k="sapatilha">Estoque de sapatilha</button></div>`;
+  if(!prods.length)return `<div class="stack">${header('Estoque',sub,seg)}<div class="glass empty">Nenhum produto cadastrado ainda.</div></div>`;
   if(!prods.some(x=>x.p.id===ui.estProd))ui.estProd=prods[0].p.id;
   const cur=prods.find(x=>x.p.id===ui.estProd);
   const tabs=`<div class="seg" role="tablist" aria-label="Produtos">${prods.map(x=>`<button role="tab" class="${x.p.id===ui.estProd?'on':''}" aria-selected="${x.p.id===ui.estProd}" data-act="estProd" data-id="${x.p.id}">${esc(x.p.nome)} <span class="num sm" style="opacity:.7">${ni(x.total)}</span></button>`).join('')}</div>`;
+  const ed=isDir()&&unAtual()!=='ALL';
   let grade;
-  if(!cur.linhas.length)grade=`<div class="glass empty">Nenhuma OS de ${esc(cur.p.nome)} nesta unidade ainda. A primeira cor aparece aqui quando uma OS for criada.</div>`;
+  if(!cur.linhas.length)grade=`<div class="glass empty">Nenhuma cor de ${esc(cur.p.nome)} nesta unidade ainda.${ed?' Use "Adicionar cor" para dar entrada manual.':''}</div>`;
   else{
     const col={};SZ.forEach(n=>col[n]=0);
-    const rows=cur.linhas.map(c=>`<tr><td>${esc(c.nome)}</td>${SZ.map(n=>{const q=c.q[n]||0;col[n]+=q;return `<td class="${q?'':'z'}">${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(Object.values(c.q).reduce((a,b)=>a+b,0))}</td></tr>`).join('');
-    grade=`<div class="glass"><div class="row between" style="margin-bottom:10px;flex-wrap:wrap"><b>${esc(cur.p.nome)} · Estoque</b><span class="sm muted">${cur.linhas.length} cor(es) · ${ni(cur.total)} pç · ${unAtual()==='ALL'?'todas as unidades':esc(unNome(unAtual()))}</span></div>
+    const rows=cur.linhas.map(c=>`<tr><td>${esc(c.nome)}</td>${SZ.map(n=>{const q=valEst(c,n);col[n]+=q;const aj=c.adj[n];
+      return `<td class="${q?'':'z'} ${ed?'ed':''} ${aj?'adj':''}" ${ed?`data-act="estCell" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-n="${n}" data-e="${est}" data-v="${q}"`:''} ${aj?`title="Ajustado manualmente (${aj>0?'+':''}${aj})"`:''}>${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(totEst(c))}</td></tr>`).join('');
+    grade=`<div class="glass"><div class="row between" style="margin-bottom:10px;flex-wrap:wrap"><b>${esc(cur.p.nome)} · ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'}</b><span class="row" style="gap:12px"><span class="sm muted">${cur.linhas.length} cor(es) · ${ni(cur.total)} pç · ${unAtual()==='ALL'?'todas as unidades':esc(unNome(unAtual()))}</span>${ed?`<button class="btn sm" data-act="estNovaCor">${ic('plus')}Adicionar cor</button>`:''}</span></div>
     <div class="estWrap"><table class="estGrid"><thead><tr><th>Cor \ Numeração</th>${SZ.map(n=>`<th>${n}</th>`).join('')}<th>Total</th></tr></thead><tbody>${rows}</tbody>
     <tfoot><tr><td>Total</td>${SZ.map(n=>`<td>${col[n]?ni(col[n]):''}</td>`).join('')}<td>${ni(cur.total)}</td></tr></tfoot></table></div></div>`;
   }
-  return `<div class="stack">${header('Estoque','Produtos finalizados. Cada numeração entra aqui quando todas as etapas dela terminam.')}
-  ${tabs}${grade}
-  <p class="sm faint">Soma todas as OS do produto e da cor, em andamento ou concluídas.</p></div>`;
+  const nota=est==='corte'
+    ?'Cada numeração entra quando todas as etapas de costura dela terminam, mesmo com a OS ainda em andamento. As OS de Montagem retiram daqui a quantidade da grade assim que são criadas.'
+    :'Cada numeração entra quando todas as etapas de montagem dela terminam, mesmo com a OS ainda em andamento.';
+  const fab=isDir()?`<div class="estfab">${ui.estFab?`<div class="estfab-p"><button data-act="estNovaMont">${ic('plus')}<span>Criar OS de <b>Montagem</b></span></button><button data-act="estPlanilha">${ic('download')}<span>Baixar Planilha</span></button></div>`:''}<button class="estfab-b" data-act="estFab" aria-label="Ações do estoque" aria-expanded="${!!ui.estFab}">${ic('gear')}</button></div>`:'';
+  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p></div>${fab}`;
 };
+
+/* ---------- OS de Montagem (puxa do estoque de corte) ---------- */
+function escolheTipoOs(){
+  modal('Que tipo de OS você quer criar?',`<div class="escolha"><button type="button" class="c" data-act="osNova" data-k="costura"><b>Costura</b><small>Etapas de costura do produto. Ao finalizar, entra no estoque de corte.</small></button><button type="button" class="m" data-act="osNova" data-k="montagem"><b>Montagem</b><small>Puxa do estoque de corte. Ao finalizar, entra no estoque de sapatilha.</small></button></div>`,'Fechar',()=>{});
+}
+function formOsMontagem(){
+  if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para criar a OS.');return}
+  const R=estoqueCalc([unAtual()]),SZ=szDesc(),o0=ui.osm||(ui.osm={});
+  const comCorte=p=>{const m=R.corte[p.id];return m?[...m.values()].filter(c=>SZ.some(n=>valEst(c,n)>0)):[]};
+  const prods=prodsOrd().filter(p=>comCorte(p).length);
+  if(!prods.length){toast('Não há estoque de corte disponível. Finalize uma OS de costura ou dê entrada manual no estoque de corte.');return}
+  const pid=prods.some(p=>p.id===o0.pid)?o0.pid:prods[0].id;
+  const cores=comCorte(prodDe(pid));
+  const cor=cores.find(c=>corKey(c.nome)===o0.ck)||cores[0];
+  const pedido=o0.pedido||Math.max(0,...S.os.map(x=>+x.pedido||0))+1;
+  const temEt=S.etapas.some(e=>e.pid===pid&&etapaTipo(e)==='montagem');
+  const sizes=SZ.filter(n=>valEst(cor,n)>0);
+  modal('Nova OS de Montagem',`<div class="fgrid"><label class="f">Produto<select name="pid" data-chg="osmSel">${prods.map(p=>`<option value="${p.id}" ${p.id===pid?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+   <label class="f">Cor (com estoque de corte)<select name="cor" data-chg="osmSel">${cores.map(c=>`<option value="${esc(c.nome)}" ${c===cor?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></label>
+   <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${pedido}" required></label></div>
+   <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o0.cliente||'')}" required></label>
+   ${temEt?'':'<div class="pill warn" style="white-space:normal">Esse produto ainda não tem etapas de Montagem. Cadastre em Produtos e etapas para a OS aparecer na gerência.</div>'}
+   <div class="row between"><span class="muted sm">Código da OS</span><b id="codeprev" style="font-size:18px;letter-spacing:.04em">${codeOs(pid,cor.nome,pedido)}</b></div>
+   <div><div class="sm muted" style="margin-bottom:8px">Quantidade por numeração. O número pequeno é o que há no estoque de corte.</div><div class="sizes">${sizes.map(n=>`<label>${n} <span class="faint">/${valEst(cor,n)}</span><input type="number" min="0" max="${valEst(cor,n)}" name="s${n}" aria-label="Quantidade do ${n}" value="${(o0.grade&&o0.grade[n])||''}"></label>`).join('')}</div></div>`,
+   'Criar OS de Montagem',fd=>{
+    const Rn=estoqueCalc([unAtual()]),m=Rn.corte[pid],c=m&&m.get(corKey(cor.nome)),grade={};
+    for(const n of SZ){const v=parseInt(fd.get('s'+n));if(!(v>0))continue;const disp=c?valEst(c,n):0;
+      if(v>disp){toast('Numeração '+n+': só há '+disp+' no estoque de corte.');return false}grade[n]=v}
+    if(!Object.keys(grade).length){toast('Informe ao menos uma quantidade.');return false}
+    const ped=parseInt(fd.get('pedido'))||0,codigo=codeOs(pid,cor.nome,ped);
+    if(S.os.some(x=>x.codigo===codigo)){toast('Já existe uma OS com o código '+codigo+'.');return false}
+    S.os.push({id:uid(),codigo,cliente:String(fd.get('cliente')).trim(),cor:cor.nome,pedido:ped,pid,grade,setores:[],status:'Em andamento',tipo:'montagem'});
+    ui.osm=null;commit('OS de Montagem '+codigo+' criada. Quantidades retiradas do estoque de corte.',true);
+  },true);
+}
+Object.assign(C,{osmSel(){
+  const f=$('#mf');if(!f)return;const o0=ui.osm||(ui.osm={}),np=+f.pid.value;
+  if(np!==o0.pid){o0.pid=np;o0.ck=null}else o0.ck=corKey(f.cor.value);
+  o0.cliente=f.cliente.value;o0.pedido=f.pedido.value;formOsMontagem();
+}});
+
+/* ---------- planilha do estoque ---------- */
+async function exportarEstoque(k){
+  if(!window.XLSX){toast('Biblioteca do Excel não carregou. Recarregue a página.');return}
+  const dl=await getDl();if(!dl)return;
+  const R=estoqueCalc(estUns()),SZ=szDesc();
+  const folha=est=>{
+    const head=['Produto','Cor',...SZ,'Total'],rows=[];
+    prodsOrd().forEach(p=>{const m=R[est][p.id];if(!m)return;m.forEach(c=>{if(!totEst(c))return;rows.push([p.nome,c.nome,...SZ.map(n=>valEst(c,n)||''),totEst(c)])})});
+    const ws=XLSX.utils.aoa_to_sheet([head,...rows]);ws['!cols']=[{wch:18},{wch:16},...SZ.map(()=>({wch:5})),{wch:8}];return ws;
+  };
+  const wb=XLSX.utils.book_new();
+  if(k!=='sapatilha')XLSX.utils.book_append_sheet(wb,folha('corte'),'Estoque de corte');
+  if(k!=='corte')XLSX.utils.book_append_sheet(wb,folha('sapatilha'),'Estoque de sapatilha');
+  try{await dl.save({filename:'ritmus-estoque-'+(k==='ambos'?'completo':k)+'-'+today()+'.xlsx',data:new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'})});closeModal();toast('Planilha pronta.')}
+  catch(e){if(!(e&&e.code==='declined'))toast('Não foi possível gerar o arquivo ('+((e&&(e.code||e.message))||'erro')+').')}
+}
 Object.assign(A,{
-  estProd(d){ui.estProd=+d.id;draw(true)}
+  estProd(d){ui.estProd=+d.id;draw(true)},
+  estTipo(d){ui.estTipo=d.k;ui.estFab=false;draw(true)},
+  estFab(){ui.estFab=!ui.estFab;draw(true)},
+  osNova(d){closeModal();if(d.k==='montagem'){ui.osm=null;formOsMontagem()}else formOs()},
+  estNovaMont(){ui.estFab=false;ui.osm=null;draw(true);formOsMontagem()},
+  estPlanilha(){ui.estFab=false;draw(true);
+    modal('Baixar planilha de estoque',`<p class="sm muted">Escolha o que baixar.</p><div class="stack" style="gap:8px"><button type="button" class="btn" data-act="estXls" data-k="corte">${ic('download')}Estoque de corte</button><button type="button" class="btn" data-act="estXls" data-k="sapatilha">${ic('download')}Estoque de sapatilha</button><button type="button" class="btn" data-act="estXls" data-k="ambos">${ic('download')}Os dois estoques (uma planilha, duas abas)</button></div>`,'Fechar',()=>{})},
+  estXls(d){exportarEstoque(d.k)},
+  estCell(d,el){
+    const r=el.getBoundingClientRect(),W=190,H=130;
+    const x=Math.max(8,Math.min(window.innerWidth-W-8,r.left+r.width/2-W/2));
+    let y=r.bottom+8;if(y+H>window.innerHeight-8)y=Math.max(8,r.top-H-8);
+    $('#pop').innerHTML=`<form class="estpop" id="ef" style="left:${x}px;top:${y}px" data-p="${esc(d.p)}" data-c="${esc(d.c)}" data-n="${esc(d.n)}" data-e="${esc(d.e)}"><div>Qtd atual: <b>${esc(d.v)}</b> <span class="faint sm">· nº ${esc(d.n)}</span></div><input name="qtd" type="number" min="0" inputmode="numeric" value="${esc(d.v)}" aria-label="Nova quantidade" required><button class="btn">Salvar</button></form>`;
+    const i=$('#ef input');if(i){i.focus();i.select()}
+  },
+  estNovaCor(){
+    const est=ui.estTipo==='sapatilha'?'sapatilha':'corte',SZ=szDesc();
+    modal('Adicionar cor ao estoque',`<p class="sm muted">Dá entrada manual em ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'} de ${esc((prodDe(ui.estProd)||{}).nome||'')}. Depois é só clicar nas outras numerações da grade.</p>
+      <label class="f">Cor<input name="cor" placeholder="Ex: Roxo" required></label>
+      <div class="fgrid"><label class="f">Numeração<select name="n">${SZ.map(n=>`<option>${n}</option>`).join('')}</select></label><label class="f">Quantidade<input name="qtd" type="number" min="1" required></label></div>`,'Adicionar',fd=>{
+      const cor=String(fd.get('cor')).trim(),q=parseInt(fd.get('qtd'))||0;if(!cor||q<1){toast('Informe a cor e a quantidade.');return false}
+      salvaEst(ui.estProd,cor,+fd.get('n'),est,q);
+    });
+  }
 });
 
 Object.assign(A,{osModelo(){baixarModelo()},osExport(){osExportForm()},osChk(d){document.querySelectorAll('#mf input[name=o]').forEach(i=>i.checked=d.v==='1')},osImport(){const i=$('#osFile');if(i)i.click()}});
@@ -1389,9 +1540,9 @@ Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPl
 /* ---------- Supabase: login, sincronização e tempo real ---------- */
 const CFG=window.RITMUS_CONFIG||{};
 let lastPersist=0,sb=null,chan=null,snap={},flushT=null,flushing=false,again=false,redrawPending=false,redrawT=null,subOnce=false;
-const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash'];
+const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash','estajustes'];
 const ALL=[...COLS,'cfg'];
-const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],nid:1});
+const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],estajustes:[],nid:1});
 const canon=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.keys(x).sort().reduce((o,kk)=>(o[kk]=x[kk],o),{}):x);
 const keyOf=(c,x)=>c==='aps'?[x.d,x.fid,x.oid,x.eid].join('|'):String(x.id);
 const rowsOf=c=>c==='cfg'?[['main',S.cfg]]:S[c].map(x=>[keyOf(c,x),x]);
@@ -1436,7 +1587,8 @@ async function loadAll(first){
 }
 
 /* gravação: compara com o último estado salvo e envia só o que mudou */
-function persist(){lastPersist=Date.now();clearTimeout(flushT);flushT=setTimeout(flush,350)}
+function syncStatusOs(){let ch=false;S.os.forEach(o=>{if(o.status!=='Concluída'&&!o.autoFin&&osProgress(o)>=99.999){o.status='Concluída';o.autoFin=true;ch=true}});return ch}
+function persist(){syncStatusOs();lastPersist=Date.now();clearTimeout(flushT);flushT=setTimeout(flush,350)}
 async function flush(){
   if(!sb||!session)return;
   if(flushing){again=true;return}

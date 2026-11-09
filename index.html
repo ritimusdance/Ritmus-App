@@ -72,6 +72,18 @@ details.prod.pt-montagem[open]{background:rgba(96,165,250,.04)}
 .et.eth{border-top:0;padding:2px 0;font-size:11.5px;color:var(--fg-3);grid-template-areas:'n s p x'}
 .et.eth>span:nth-child(1){grid-area:n}.et.eth>span:nth-child(2){grid-area:s}.et.eth>span:nth-child(3){grid-area:p}
 .et.eth>span{display:flex;align-items:center}
+.et .en{display:flex;align-items:center;gap:6px}
+.et .grip{cursor:grab;color:var(--fg-3);display:inline-grid;place-items:center;width:20px;height:28px;border-radius:6px;flex:none}
+.et .grip:hover{color:var(--fg);background:var(--glass-2)}
+.et .grip:active{cursor:grabbing}
+.et .grip svg{width:14px;height:14px;fill:currentColor;stroke:none}
+.et .ex{display:flex;align-items:center;justify-content:flex-end}
+.et .ex .ib{width:28px;height:28px}
+.et.dragging{opacity:.35}
+.et.dragover{box-shadow:0 -2px 0 var(--coral)}
+.et.dragover.after{box-shadow:0 2px 0 var(--coral)}
+.ib:disabled{opacity:.28;cursor:default;pointer-events:none}
+.pill svg.i{width:13px;height:13px}
 
 </style>
 <title>Ritmus Produção</title>
@@ -221,7 +233,7 @@ html,body{overflow-x:clip}
 .et-x{grid-area:e}
 .et select,.add-et select{padding:5px 8px;font-size:12.5px}
 [hidden]{display:none!important}
-@container (max-width:450px){.et{grid-template-columns:minmax(0,1fr) 100px 32px;grid-template-areas:'n n x' 's p .' 'e e e'}.add-et{grid-template-columns:minmax(0,1fr) 100px;grid-template-areas:'n n' 's p' 'b b'}.et.eth{display:flex;gap:16px;grid-template-areas:none}.et.eth>span:nth-child(1),.et.eth>span:nth-child(4){display:none}}
+@container (max-width:450px){.et{grid-template-columns:minmax(0,1fr) 100px 88px;grid-template-areas:'n n x' 's p .' 'e e e'}.add-et{grid-template-columns:minmax(0,1fr) 100px;grid-template-areas:'n n' 's p' 'b b'}.et.eth{display:flex;gap:16px;grid-template-areas:none}.et.eth>span:nth-child(1),.et.eth>span:nth-child(4){display:none}}
 
 /* grade do gerente */
 .sheet-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
@@ -354,7 +366,11 @@ max:'<path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/>',
 download:'<path d="M12 4v11"/><path d="m8 11.5 4 4 4-4"/><path d="M5 20h14"/>',
 upload:'<path d="M12 15V4"/><path d="m8 8 4-4 4 4"/><path d="M5 14.5V17a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-2.5"/>',
 gear:'<path d="M12.2 2.8h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.2a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.1.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.7l-.1.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.2a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.2a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.1-.1a2 2 0 0 1-1-1.7v-.5a2 2 0 0 1 1-1.7l.1-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.2a2 2 0 0 1-1-1.7v-.2a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
-award:'<circle cx="12" cy="9" r="5.5"/><path d="m8.7 13.6-1.5 7 4.8-2.6 4.8 2.6-1.5-7"/>'
+award:'<circle cx="12" cy="9" r="5.5"/><path d="m8.7 13.6-1.5 7 4.8-2.6 4.8 2.6-1.5-7"/>',
+grip:'<circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>',
+copy:'<rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6A2.5 2.5 0 0 0 13 3.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/>',
+truck:'<path d="M3 6.5h11v9H3z"/><path d="M14 9.5h3.8l2.7 3v3H14z"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+file:'<path d="M7 3.5h6.5L18 8v11.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1z"/><path d="M13.5 3.5V8H18M9 13h6M9 16.5h4"/>'
 };
 const ic=n=>'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>';
 
@@ -593,7 +609,8 @@ V.prods=()=>{
     return `<details class="glass prod pt-${t}" data-pid="${p.id}" ${open.has(p.id)?'open':''}>
     <summary><div class="pt-h"><h3>${esc(p.nome)}</h3>${tipoProdPill(p)}<span class="faint sm">inicial ${esc(inicialDe(p))}</span></div><span class="row" style="gap:6px;flex-wrap:nowrap"><span class="faint sm">${es.length} etapa(s)</span><button class="ib" aria-label="Editar ${esc(p.nome)}" data-act="editProd" data-id="${p.id}">${ic('pencil')}</button><button class="ib del" aria-label="Remover ${esc(p.nome)}" data-act="delProd" data-id="${p.id}">${ic('trash')}</button></span></summary>
     <div class="pt-b">${t==='montagem'?`<p class="sm faint" style="margin:0 0 8px">Puxa do estoque de corte de: <b style="color:var(--fg)">${src?esc(src.nome):'nenhum produto de Costura encontrado'}</b></p>`:''}
-    <div>${es.length?`<div class="et eth" aria-hidden="false"><span>Etapa</span><span>Setor responsável${tip(TIP.setor)}</span><span>Pontos${tip(TIP.pontos)}</span><span></span></div>`:''}${es.map(e=>`<div class="et"><span class="en">${esc(e.nome)}</span><select class="es" aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><span class="ep"><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span></span><button class="ib del ex" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button>
+    ${S.produtos.some(x=>x.id!==p.id&&S.etapas.some(e=>e.pid===x.id))?`<div class="row" style="justify-content:flex-end;margin:0 0 6px"><button class="btn sm" data-act="copyEt" data-id="${p.id}">${ic('copy')}Copiar etapas de outro produto</button></div>`:''}
+    <div>${es.length?`<div class="et eth" aria-hidden="false"><span>Etapa</span><span>Setor responsável${tip(TIP.setor)}</span><span>Pontos${tip(TIP.pontos)}</span><span></span></div>`:''}${es.map((e,ix)=>`<div class="et" data-eid="${e.id}"><span class="en"><span class="grip" draggable="true" data-grip="${e.id}" title="Arraste para reordenar" aria-hidden="true">${ic('grip')}</span><span>${esc(e.nome)}</span></span><select class="es" aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><span class="ep"><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span></span><span class="ex"><button class="ib" aria-label="Subir etapa ${esc(e.nome)}" title="Subir" data-act="etMove" data-id="${e.id}" data-d="-1" ${ix===0?'disabled':''}>${ic('up')}</button><button class="ib" aria-label="Descer etapa ${esc(e.nome)}" title="Descer" data-act="etMove" data-id="${e.id}" data-d="1" ${ix===es.length-1?'disabled':''}>${ic('down')}</button><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></span>
       <div class="et-x"><span class="faint sm">Também aceita${tip(TIP.extra)}</span>${(e.extras||[]).map(x=>`<span class="chip">${esc(x)} <button type="button" class="ib del" style="width:18px;height:18px;vertical-align:middle" aria-label="Tirar ${esc(x)} da etapa ${esc(e.nome)}" data-act="etRmExtra" data-id="${e.id}" data-s="${esc(x)}">${ic('x')}</button></span>`).join('')}<select aria-label="Adicionar setor extra na etapa ${esc(e.nome)}" data-chg="etAddExtra" data-id="${e.id}"><option value="">+ setor</option>${outros(e).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
     <div class="et eth add-h" style="border-top:0"><span>Nova etapa</span><span>Setor responsável${tip(TIP.setor)}</span><span>Pontos${tip(TIP.pontos)}</span><span></span></div>
     <div class="add-et"><input class="an" id="en-${p.id}" placeholder="Nome da etapa" aria-label="Nome da nova etapa"><select class="as" id="es-${p.id}" aria-label="Setor da nova etapa"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input class="ap" id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn ab" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div></details>`};
@@ -606,10 +623,10 @@ V.prods=()=>{
 V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido. Dê dois cliques numa ficha para vê-la como a gerência vê.',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
  ${S.os.map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
-  return `<tr class="os-${tipoOs(o)}" data-fid="${o.id}" style="cursor:pointer"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
+  return `<tr class="os-${tipoOs(o)}" data-fid="${o.id}" style="cursor:pointer"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${transfPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
   <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'?'<span class="pill ok">Finalizada</span>':''}</div></td>
   <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}" ${tool('osedit')?'':'disabled'}><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
-  <td class="r">${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${tool('osdel')?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div></div>`;
+  <td class="r">${isDir()&&tipoOs(o)==='costura'?`<button class="ib" aria-label="Transferir ${esc(o.codigo)} para outra unidade" title="Transferir para outra unidade" data-act="transferir" data-id="${o.id}">${ic('truck')}</button>`:''}${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${tool('osdel')?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div>${transfCard()}</div>`;
 
 function osFrac(oid,eid,de,ate){const o=osDe(oid);const total=Object.values(o.grade).reduce((s,v)=>s+Number(v),0);if(!total)return 0;
   let d=0;Object.values(doneMap(o,eid,de,ate)).forEach(v=>d+=v);return d/total*100}
@@ -1007,7 +1024,7 @@ function formProd(id){
     <label class="tp c"><input type="radio" name="tipo" value="costura" data-chg="prodTipoSel" ${(!p||prodTipo(p)==='costura')?'checked':''}><b>Costura</b><small>Etapas de costura. Ao concluir, entra no estoque de corte.</small></label>
     <label class="tp m"><input type="radio" name="tipo" value="montagem" data-chg="prodTipoSel" ${(p&&prodTipo(p)==='montagem')?'checked':''}><b>Montagem</b><small>Etapas de montagem. Puxa do estoque de corte e entra no estoque de sapatilha.</small></label></div></div>
    <label class="f" id="corteBox" ${(p&&prodTipo(p)==='montagem')?'':'hidden'}><span>Puxa do estoque de corte de${tip(TIP.corte)}</span><select name="corteDe"><option value="">Automático pelo nome (Montagem - Korino puxa de Korino)</option>${S.produtos.filter(x=>prodTipo(x)==='costura'&&(!p||x.id!==p.id)).map(x=>`<option value="${x.id}" ${p&&p.corteDe===x.id?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label>
-   ${p?'<p class="sm faint">Ao mudar a inicial, o código das OS desse produto é atualizado.</p>':'<p class="sm faint">Depois de criar, adicione as etapas e os pontos de cada uma.</p>'}`,'Salvar',fd=>{
+   ${p?'<p class="sm faint">Ao mudar a inicial, o código das OS desse produto é atualizado.</p>':`<label class="f">Copiar as etapas de (opcional)<select name="copiaDe"><option value="">Começar sem etapas</option>${S.produtos.filter(x=>S.etapas.some(e=>e.pid===x.id)).map(x=>`<option value="${x.id}">${esc(x.nome)} · ${S.etapas.filter(e=>e.pid===x.id).length} etapa(s)</option>`).join('')}</select></label><p class="sm faint">Sem cópia, depois de criar você adiciona as etapas e os pontos de cada uma.</p>`}`,'Salvar',fd=>{
     const nome=String(fd.get('nome')).trim();if(!nome)return false;
     const inicial=String(fd.get('inicial')||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,3);
     const efetiva=inicial||ini(nome);
@@ -1021,7 +1038,7 @@ function formProd(id){
       novos.forEach(([o,c])=>{if(usados.has(c))conflito=c;usados.add(c)});
       if(conflito){p.nome=old.nome;p.inicial=old.inicial;p.tipo=old.tipo;p.corteDe=old.corteDe;toast('Essa inicial geraria o código '+conflito+', que já existe em outra OS. Escolha outra inicial.');return false}
       novos.forEach(([o,c])=>{o.codigo=c});
-    }else{const np={id:uid(),nome,inicial,tipo};if(corteDe)np.corteDe=corteDe;S.produtos.push(np);ui.prodOpen=(ui.prodOpen||new Set()).add(np.id)}
+    }else{const np={id:uid(),nome,inicial,tipo};if(corteDe)np.corteDe=corteDe;S.produtos.push(np);ui.prodOpen=(ui.prodOpen||new Set()).add(np.id);const cp=+fd.get('copiaDe')||0;if(cp&&S.produtos.some(x=>x.id===cp)){const n=copiaEtapas(cp,np.id);commit('Produto criado com '+n+' etapa(s) copiada(s).',true);return}}
     commit(p?'Produto atualizado.':'Produto criado. Abra o card para cadastrar as etapas.',true);
   });
 }
@@ -1218,7 +1235,7 @@ const A={
   delFalta(d){S.faltas=S.faltas.filter(x=>x.id!==+d.id);commit('Registro removido.',true)},
   avLido(d){const a=by(S.avisos,+d.id);if(a)a.lido=true;commit('',true)},
   delAviso(d){S.avisos=S.avisos.filter(x=>x.id!==+d.id);commit('Aviso apagado.',true)},
-  delOs(d){const o=osDe(+d.id);if(!o||!tool('osdel'))return;confirmBox(`Remover a OS <b>${esc(o.codigo)}</b>? Lançamentos e perdas dela também serão apagados.`,'Remover',()=>{
+  delOs(d){const o=osDe(+d.id);if(!o||!tool('osdel'))return;if(transfDe(o.id).length){toast('Essa OS tem transferências registradas. Desfaça as transferências antes de remover.');return}confirmBox(`Remover a OS <b>${esc(o.codigo)}</b>? Lançamentos e perdas dela também serão apagados.`,'Remover',()=>{
     S.os=S.os.filter(x=>x.id!==o.id);S.aps=S.aps.filter(a=>a.oid!==o.id);S.perdas=S.perdas.filter(p=>p.oid!==o.id);
     Object.keys(drafts).forEach(k=>{if(k.split('|')[1]==o.id)delete drafts[k]});commit('OS removida.',true)})},
   prodCmp(){ui.prod.cmp=!ui.prod.cmp;draw(true)},
@@ -1512,16 +1529,16 @@ V.estoque=()=>{
   else{
     const col={};SZ.forEach(n=>col[n]=0);
     const rows=cur.linhas.map(c=>`<tr><td>${esc(c.nome)}</td>${SZ.map(n=>{const q=valEst(c,n);col[n]+=q;const aj=c.adj[n];
-      return `<td class="${q?'':'z'} ${ed?'ed':''} ${aj?'adj':''}" ${ed?`data-act="estCell" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-n="${n}" data-e="${est}" data-v="${q}"`:''} ${aj?`title="Ajustado manualmente (${aj>0?'+':''}${aj})"`:''}>${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(totEst(c))}</td></tr>`).join('');
-    grade=`<div class="glass"><div class="row between" style="margin-bottom:10px;flex-wrap:wrap"><b>${esc(cur.p.nome)} · ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'}</b><span class="row" style="gap:12px"><span class="sm muted">${cur.linhas.length} cor(es) · ${ni(cur.total)} pç · ${unAtual()==='ALL'?'todas as unidades':esc(unNome(unAtual()))}</span>${ed?`<button class="btn sm" data-act="estNovaCor">${ic('plus')}Adicionar cor</button>`:''}</span></div>
+      return `<td class="${q?'':'z'} ${ed?'ed':''} ${aj?'adj':''}" ${ed?`data-act="estCell" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-n="${n}" data-e="${est}" data-v="${q}"`:''} ${aj?`title="Ajuste no estoque (${aj>0?'+':''}${aj}): entrada manual ou transferência entre unidades"`:''}>${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(totEst(c))}</td></tr>`).join('');
+    grade=`<div class="glass"><div class="row between" style="margin-bottom:10px;flex-wrap:wrap"><b>${esc(cur.p.nome)} · ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'}</b><span class="row" style="gap:12px"><span class="sm muted">${cur.linhas.length} cor(es) · ${ni(cur.total)} pç · ${unAtual()==='ALL'?'todas as unidades':esc(unNome(unAtual()))}</span>${ed?`<button class="btn sm" data-act="estTransf">${ic('truck')}Transferir</button><button class="btn sm" data-act="estNovaCor">${ic('plus')}Adicionar cor</button>`:''}</span></div>
     <div class="estWrap"><table class="estGrid"><thead><tr><th>Cor \ Numeração</th>${SZ.map(n=>`<th>${n}</th>`).join('')}<th>Total</th></tr></thead><tbody>${rows}</tbody>
     <tfoot><tr><td>Total</td>${SZ.map(n=>`<td>${col[n]?ni(col[n]):''}</td>`).join('')}<td>${ni(cur.total)}</td></tr></tfoot></table></div></div>`;
   }
   const nota=est==='corte'
     ?'Cada numeração entra quando todas as etapas de costura dela terminam, mesmo com a OS ainda em andamento. As OS de Montagem retiram daqui a quantidade da grade assim que são criadas.'
     :'Cada numeração entra quando todas as etapas de montagem dela terminam, mesmo com a OS ainda em andamento.';
-  const fab=isDir()?`<div class="estfab">${ui.estFab?`<div class="estfab-p"><button data-act="estNovaMont">${ic('plus')}<span>Criar OS de <b>Montagem</b></span></button><button data-act="estPlanilha">${ic('download')}<span>Baixar Planilha</span></button></div>`:''}<button class="estfab-b" data-act="estFab" aria-label="Ações do estoque" aria-expanded="${!!ui.estFab}">${ic('gear')}</button></div>`:'';
-  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p></div>${fab}`;
+  const fab=isDir()?`<div class="estfab">${ui.estFab?`<div class="estfab-p"><button data-act="estTransf">${ic('truck')}<span>Transferir estoque</span></button><button data-act="estNovaMont">${ic('plus')}<span>Criar OS de <b>Montagem</b></span></button><button data-act="estPlanilha">${ic('download')}<span>Baixar Planilha</span></button></div>`:''}<button class="estfab-b" data-act="estFab" aria-label="Ações do estoque" aria-expanded="${!!ui.estFab}">${ic('gear')}</button></div>`:'';
+  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p>${transfCard()}</div>${fab}`;
 };
 
 /* ---------- OS de Montagem (puxa do estoque de corte) ---------- */
@@ -1638,9 +1655,9 @@ Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPl
 /* ---------- Supabase: login, sincronização e tempo real ---------- */
 const CFG=window.RITMUS_CONFIG||{};
 let lastPersist=0,sb=null,chan=null,snap={},flushT=null,flushing=false,again=false,redrawPending=false,redrawT=null,subOnce=false;
-const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash','estajustes'];
+const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash','estajustes','transf'];
 const ALL=[...COLS,'cfg'];
-const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],estajustes:[],nid:1});
+const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],estajustes:[],transf:[],nid:1});
 const canon=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.keys(x).sort().reduce((o,kk)=>(o[kk]=x[kk],o),{}):x);
 const keyOf=(c,x)=>c==='aps'?[x.d,x.fid,x.oid,x.eid].join('|'):String(x.id);
 const rowsOf=c=>c==='cfg'?[['main',S.cfg]]:S[c].map(x=>[keyOf(c,x),x]);
@@ -2144,6 +2161,304 @@ function formPwUser(u){
     (async()=>{try{const {error}=await sb.rpc('trocar_senha_usuario',{p_user:u.user_id,p_senha:p1});if(error)throw error;closeModal();toast('Senha trocada.')}catch(e){toast(erroRpc(e))}})();
     return false;
   });
+}
+
+/* ======================= Copiar e reordenar etapas ======================= */
+function copiaEtapas(srcId,pid){
+  const fonte=S.etapas.filter(e=>e.pid===srcId).sort((a,b)=>a.ordem-b.ordem);
+  let ordem=Math.max(0,...S.etapas.filter(e=>e.pid===pid).map(e=>e.ordem));
+  fonte.forEach(e=>{const n={id:uid(),pid,nome:e.nome,ordem:++ordem,pontos:e.pontos,setor:e.setor||''};if(e.extras&&e.extras.length)n.extras=[...e.extras];S.etapas.push(n)});
+  return fonte.length;
+}
+function previaEtapas(sid){
+  const l=S.etapas.filter(e=>e.pid===sid).sort((a,b)=>a.ordem-b.ordem);
+  return l.length?l.map((e,i)=>`<div class="row between" style="padding:4px 0;border-top:${i?'1px solid var(--line)':'0'}"><span>${i+1}. ${esc(e.nome)}</span><span class="sm muted">${esc(e.setor||'Qualquer setor')} · ${nf(e.pontos)} pts</span></div>`).join(''):'<span class="faint sm">Sem etapas.</span>';
+}
+function formCopiarEtapas(pid){
+  const p=prodDe(pid);if(!p)return;
+  const srcs=S.produtos.filter(x=>x.id!==pid&&S.etapas.some(e=>e.pid===x.id));
+  if(!srcs.length){toast('Não há outro produto com etapas para copiar.');return}
+  const eids=S.etapas.filter(e=>e.pid===pid).map(e=>e.id),cur=eids.length,lanc=S.aps.filter(a=>eids.includes(a.eid)).length;
+  const s0=srcs[0];
+  modal('Copiar etapas para '+p.nome,`<label class="f">Copiar as etapas de<select name="src" data-chg="cpSel">${srcs.map(x=>`<option value="${x.id}">${esc(x.nome)} · ${S.etapas.filter(e=>e.pid===x.id).length} etapa(s)</option>`).join('')}</select></label>
+   <div class="glass" style="padding:10px 14px;border-radius:14px" id="cpPrev">${previaEtapas(s0.id)}</div>
+   ${cur?`<div class="stack" style="gap:8px"><label class="chip row" style="gap:8px;cursor:pointer"><input type="radio" name="modo" value="add" checked style="width:auto">Adicionar no final das ${cur} etapa(s) atuais</label>
+   <label class="chip row" style="gap:8px;cursor:pointer"><input type="radio" name="modo" value="replace" style="width:auto">Substituir todas as etapas atuais</label>
+   ${lanc?`<div class="pill warn" style="white-space:normal">Substituir apaga também ${lanc} lançamento(s) das etapas atuais.</div>`:''}</div>`:'<p class="sm faint">Este produto ainda não tem etapas. Nome, setor, pontos e setores extras serão copiados. Depois você pode ajustar tudo.</p>'}`,'Copiar etapas',fd=>{
+    const sid=+fd.get('src');if(!S.produtos.some(x=>x.id===sid))return false;
+    if(cur&&fd.get('modo')==='replace'){
+      S.etapas=S.etapas.filter(e=>e.pid!==pid);S.aps=S.aps.filter(a=>!eids.includes(a.eid));S.perdas=S.perdas.filter(x=>!eids.includes(x.eid));
+    }
+    const n=copiaEtapas(sid,pid);
+    S.etapas.filter(e=>e.pid===pid).sort((a,b)=>a.ordem-b.ordem).forEach((e,i)=>{e.ordem=i+1});
+    ui.prodOpen=(ui.prodOpen||new Set()).add(pid);
+    commit(n+' etapa(s) copiada(s) para '+p.nome+'.',true);
+  });
+}
+Object.assign(C,{cpSel(el){const b=$('#cpPrev');if(b)b.innerHTML=previaEtapas(+el.value)}});
+Object.assign(A,{
+  copyEt(d){formCopiarEtapas(+d.id)},
+  etMove(d){
+    const e=etapaDe(+d.id);if(!e)return;
+    const l=S.etapas.filter(x=>x.pid===e.pid).sort((a,b)=>a.ordem-b.ordem),i=l.findIndex(x=>x.id===e.id),j=i+(+d.d);
+    if(j<0||j>=l.length)return;
+    l.splice(j,0,l.splice(i,1)[0]);l.forEach((x,k)=>{x.ordem=k+1});commit('',true);
+  }
+});
+let etDrag=null;
+const etRow=e=>e.target.closest?e.target.closest('.et[data-eid]'):null;
+const etClear=()=>document.querySelectorAll('.et.dragover,.et.dragging').forEach(x=>x.classList.remove('dragover','after','dragging'));
+document.addEventListener('dragstart',e=>{
+  const g=e.target.closest&&e.target.closest('[data-grip]');if(!g)return;
+  etDrag=+g.dataset.grip;e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain','etapa'+etDrag);const r=g.closest('.et');if(r){e.dataTransfer.setDragImage(r,16,16);setTimeout(()=>r.classList.add('dragging'),0)}}catch(x){}
+});
+document.addEventListener('dragover',e=>{
+  if(etDrag==null)return;const r=etRow(e),a=etapaDe(etDrag);
+  document.querySelectorAll('.et.dragover').forEach(x=>x.classList.remove('dragover','after'));
+  if(!r||!a)return;const b=etapaDe(+r.dataset.eid);if(!b||b.pid!==a.pid||b.id===a.id)return;
+  e.preventDefault();const bb=r.getBoundingClientRect();r.classList.add('dragover');if(e.clientY>bb.top+bb.height/2)r.classList.add('after');
+});
+document.addEventListener('drop',e=>{
+  if(etDrag==null)return;const r=etRow(e),a=etapaDe(etDrag);if(!r||!a){return}
+  const b=etapaDe(+r.dataset.eid);if(!b||b.pid!==a.pid||b.id===a.id)return;
+  e.preventDefault();const bb=r.getBoundingClientRect(),depois=e.clientY>bb.top+bb.height/2;
+  const l=S.etapas.filter(x=>x.pid===a.pid).sort((x,y)=>x.ordem-y.ordem).filter(x=>x.id!==a.id);
+  let i=l.findIndex(x=>x.id===b.id);if(depois)i++;l.splice(i,0,a);l.forEach((x,k)=>{x.ordem=k+1});
+  etDrag=null;etClear();commit('',true);
+});
+document.addEventListener('dragend',()=>{etDrag=null;etClear()});
+
+/* ======================= Transferência de fichas entre unidades ======================= */
+const transfs=()=>S.transf||(S.transf=[]);
+const transfDe=oid=>transfs().filter(t=>t.oid===oid);
+function jaEnv(oid){const m={};transfDe(oid).forEach(t=>Object.keys(t.grade).forEach(n=>{m[n]=(m[n]||0)+(Number(t.grade[n])||0)}));return m}
+function transfPill(o){
+  const L=transfDe(o.id);if(!L.length)return '';
+  const q=L.reduce((s,t)=>s+(t.total||0),0),ult=L[L.length-1];
+  return ` <span class="pill warn" title="Peças desta ficha já enviadas para outra unidade">${ic('truck')}${ni(q)} pç para ${esc(unNome(ult.para))}</span>`;
+}
+const emVista=u=>unAtual()==='ALL'?unPermitidas().includes(u):unAtual()===u;
+const ajKey=(a,x)=>a.u===x.u&&a.pid===x.pid&&a.est===x.est&&+a.n===+x.n&&corKey(a.cor)===corKey(x.cor);
+/* Soma (ou subtrai) quantidades no estoque de qualquer unidade. Cada chave (unidade, produto, cor, numeração, tipo) tem uma linha só. */
+async function ajusteSoma(list){
+  const loc=list.filter(x=>emVista(x.u)),rem=list.filter(x=>!emVista(x.u));
+  if(rem.length){
+    if(!sb)throw new Error('sem conexão com o banco');
+    const {data,error}=await sb.from('registros').select('id,dados').eq('colecao','estajustes');if(error)throw error;
+    const rows=data||[],up=[],del=[];
+    rem.forEach(x=>{
+      const r=rows.find(r=>ajKey(r.dados,x));
+      if(r){const d=(Number(r.dados.delta)||0)+x.delta;if(d===0)del.push(r.id);else up.push({colecao:'estajustes',id:String(r.id),dados:Object.assign({},r.dados,{delta:d,autor:meuNome(),em:today()})})}
+      else if(x.delta!==0){const id=uid();up.push({colecao:'estajustes',id:String(id),dados:{id,u:x.u,pid:x.pid,cor:String(x.cor).trim(),n:x.n,est:x.est,delta:x.delta,autor:meuNome(),em:today()}})}
+    });
+    if(up.length){const r=await sb.from('registros').upsert(up,{onConflict:'colecao,id'});if(r.error)throw r.error}
+    if(del.length){const r=await sb.from('registros').delete().eq('colecao','estajustes').in('id',del);if(r.error)throw r.error}
+  }
+  loc.forEach(x=>{
+    const arr=ajustes(),i=arr.findIndex(a=>ajKey(a,x));
+    if(i>=0){const d=(Number(arr[i].delta)||0)+x.delta;if(d===0)arr.splice(i,1);else arr[i]=Object.assign({},arr[i],{delta:d,autor:meuNome(),em:today()})}
+    else if(x.delta!==0)arr.push({id:uid(),u:x.u,pid:x.pid,cor:String(x.cor).trim(),n:x.n,est:x.est,delta:x.delta,autor:meuNome(),em:today()});
+  });
+}
+function trfTotal(){
+  const f=$('#mf');if(!f)return;let t=0;f.querySelectorAll('input[data-trf]').forEach(i=>{t+=parseInt(i.value)||0});
+  const b=$('#trfTot');if(b)b.textContent=ni(t)+' peça(s)';
+}
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#mf input[data-trf]'))trfTotal()});
+Object.assign(C,{trfPara(el){const f=$('#mf');if(f&&f.cred)f.cred.value=el.value}});
+function formTransferir(oid){
+  const o=osDe(oid);if(!o)return;
+  if(!isDir()){toast('Só a Diretoria transfere fichas entre unidades.');return}
+  if(tipoOs(o)!=='costura'){toast('Só fichas de Costura podem ser transferidas. A Montagem sai do estoque de corte.');return}
+  const origem=uOf(o),dests=unidades().filter(x=>x[0]!==origem);
+  if(!dests.length){toast('Cadastre outra unidade em Acesso para poder transferir.');return}
+  const env=jaEnv(o.id);
+  const rows=Object.keys(o.grade).map(Number).sort((a,b)=>b-a).map(n=>{
+    const g=Number(o.grade[n])||0,e=env[n]||0,disp=Math.max(0,g-e),pronto=Math.min(disp,Math.max(0,feitoOs(o,n)-e));return{n,g,disp,pronto}});
+  if(!rows.some(r=>r.disp>0)){toast('Toda a grade dessa ficha já foi transferida.');return}
+  ui.trfRows=rows;const p=prodDe(o.pid),totDisp=rows.reduce((s,r)=>s+r.disp,0);
+  const dpad=(dests.find(x=>x[0]==='PIR')||dests[0])[0];
+  modal('Transferir ficha '+o.codigo,`<div class="glass" style="padding:12px 14px;border-radius:14px"><b>${esc(o.codigo)}</b> · ${esc(p?p.nome:'')} · ${esc(o.cor)}<br><span class="sm muted">${esc(o.cliente)} · sai de <b style="color:var(--fg)">${esc(unNome(origem))}</b></span></div>
+   <div class="fgrid"><label class="f">Enviar para<select name="para" data-chg="trfPara">${dests.map(([u,l])=>`<option value="${esc(u)}" ${u===dpad?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
+   <label class="f">Adicionar ao estoque de corte de<select name="cred">${unidades().map(([u,l])=>`<option value="${esc(u)}" ${u===dpad?'selected':''}>${esc(l)}</option>`).join('')}</select></label></div>
+   <p class="sm faint" style="margin-top:-6px">A unidade escolhida passa a ter essas peças no estoque de corte, prontas para criar a OS de Montagem. ${esc(unNome(origem))} deixa de contá-las, a não ser que seja a própria escolhida.</p>
+   <div><div class="row between" style="margin-bottom:8px"><span class="sm muted">Quantidade por numeração (o número pequeno é o que ainda dá para enviar)</span><span class="row" style="gap:6px"><button type="button" class="btn sm" data-act="trfFill" data-k="pronto">Só o que está pronto</button><button type="button" class="btn sm" data-act="trfFill" data-k="grade">Grade inteira</button></span></div>
+   <div class="sizes">${rows.map(r=>`<label>${r.n} <span class="faint">/${r.disp}</span><input type="number" min="0" max="${r.disp}" name="t${r.n}" data-trf aria-label="Quantidade do ${r.n}" value="${r.pronto||''}" ${r.disp?'':'disabled'}></label>`).join('')}</div>
+   <p class="sm faint" style="margin-top:8px">"Só o que está pronto" usa as peças com todas as etapas de costura lançadas. Se a costura foi feita fora do sistema, use "Grade inteira".</p></div>
+   <div class="row between"><span class="muted sm">Total a transferir</span><b id="trfTot" style="font-size:18px">0 peça(s)</b></div>
+   <div class="fgrid"><label class="f">Nº de caixas (volumes)<input name="vols" type="number" min="1" max="99" value="1" required></label><label class="f">Observação (opcional)<input name="obs" maxlength="120" placeholder="Ex: transportadora, motorista"></label></div>
+   <label class="row" style="gap:8px"><input type="checkbox" name="pdf" checked style="width:auto"> Criar romaneio de envio em PDF (uma folha por caixa, para colar)</label>`,'Transferir',fd=>{
+    const para=String(fd.get('para')),cred=String(fd.get('cred')||para),grade={};let tot=0;
+    for(const r of ui.trfRows){const v=parseInt(fd.get('t'+r.n))||0;if(v<=0)continue;
+      if(v>r.disp){toast('Numeração '+r.n+': só dá para enviar '+r.disp+'.');return false}grade[r.n]=v;tot+=v}
+    if(!tot){toast('Informe ao menos uma quantidade.');return false}
+    executaTransf({o,para,cred,grade,tot,vols:Math.max(1,parseInt(fd.get('vols'))||1),obs:String(fd.get('obs')||'').trim(),pdf:fd.get('pdf')==='on'});
+    return false;
+  },true);
+  trfTotal();
+}
+async function executaTransf(x){
+  if(ui.trBusy)return;ui.trBusy=true;
+  const o=x.o,origem=uOf(o),p=prodDe(o.pid);
+  try{
+    clearTimeout(flushT);await flush();
+    const adj=[];
+    if(x.cred!==origem)Object.keys(x.grade).forEach(n=>{const q=x.grade[n];
+      adj.push({u:origem,pid:o.pid,cor:o.cor,n:+n,est:'corte',delta:-q},{u:x.cred,pid:o.pid,cor:o.cor,n:+n,est:'corte',delta:q})});
+    await ajusteSoma(adj);
+    const ag=new Date(),hh=pad(ag.getHours())+':'+pad(ag.getMinutes()),num=Math.max(0,...transfs().map(t=>t.num||0))+1;
+    const rec={id:uid(),num,d:today(),h:hh,oid:o.id,codigo:o.codigo,cliente:o.cliente,cor:o.cor,pid:o.pid,pnome:p?p.nome:'',de:origem,para:x.para,cred:x.cred,est:'corte',grade:x.grade,total:x.tot,vols:x.vols,obs:x.obs,autor:meuNome(),status:'enviada'};
+    transfs().push(rec);
+    if(sb){try{
+      const av={id:uid(),d:today(),h:hh,texto:'Transferência Nº '+num+': ficha '+o.codigo+' ('+o.cliente+'), '+x.tot+' pç de '+rec.pnome+' '+o.cor+', enviada de '+unNome(origem)+' para '+unNome(x.para)+' por '+meuNome()+'. Estoque de corte creditado em '+unNome(x.cred)+'. Confira com o romaneio na chegada.',urgente:false,de:'sis',autor:'Sistema',lido:false,u:x.para};
+      await sb.from('registros').upsert({colecao:'avisos',id:String(av.id),dados:av},{onConflict:'colecao,id'});
+    }catch(e){console.error(e)}}
+    closeModal();commit('Transferência Nº '+num+' registrada: '+x.tot+' peça(s) para '+unNome(x.para)+'.',true);
+    if(x.pdf)await gerarRomaneio(rec);
+  }catch(e){console.error(e);toast('Não consegui transferir: '+((e&&e.message)||'erro')+'. Nada foi alterado no estoque.')}
+  ui.trBusy=false;
+}
+async function gerarRomaneio(t){
+  if(!t)return;
+  if(!(window.jspdf&&window.jspdf.jsPDF)){toast('Biblioteca do PDF não carregou. Recarregue a página.');return}
+  const dls=await getDl();if(!dls)return;
+  try{
+    const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+    const ref=t.codigo||('estoque '+(t.est==='sapatilha'?'sapatilha':'corte')),sizes=Object.keys(t.grade).map(Number).filter(n=>t.grade[n]>0).sort((a,b)=>b-a),numStr=String(t.num).padStart(4,'0'),vols=t.vols||1;
+    const pagina=vol=>{
+      try{doc.addImage(LOGO,'PNG',14,10,11,12.1)}catch(e){}
+      doc.setFontSize(16);doc.setTextColor(30);doc.text('Romaneio de envio Nº '+numStr,29,16);
+      doc.setFontSize(9);doc.setTextColor(120);doc.text('Ritmus Dance · emitido em '+br(t.d)+' às '+t.h+' por '+t.autor,29,22);
+      doc.setFillColor(199,67,117);doc.roundedRect(W-62,9,48,15,2,2,'F');doc.setTextColor(255);doc.setFontSize(vol?15:10.5);
+      doc.text(vol?'CAIXA '+vol+' DE '+vols:'RESUMO · '+vols+' CAIXA(S)',W-38,vol?19:18.5,{align:'center'});
+      doc.autoTable({startY:30,theme:'grid',body:[['Origem',unNome(t.de),'Destino',unNome(t.para)],t.oid?['OS',t.codigo,'Produto',t.pnome]:['Estoque',t.est==='sapatilha'?'Sapatilha (prontos)':'Corte','Produto',t.pnome],t.oid?['Cor',t.cor,'Cliente',t.cliente]:['Cor',t.cor,'Enviado por',t.autor],['Total de peças',ni(t.total),'Volumes',String(vols)]],
+        styles:{fontSize:10,cellPadding:2.2,lineColor:[200,200,205]},columnStyles:{0:{fontStyle:'bold',fillColor:[247,243,245],cellWidth:32},1:{cellWidth:62},2:{fontStyle:'bold',fillColor:[247,243,245],cellWidth:28}},margin:{left:14,right:14}});
+      const y0=doc.lastAutoTable.finalY+5,avail=H-y0-58,rh=Math.max(5.4,Math.min(9,avail/(sizes.length+2))),fs=rh<7?9:11;
+      const head=vol?[['Numeração','Total da remessa','Qtd nesta caixa','Conferido','Obs.']]:[['Numeração','Qtd enviada','Qtd recebida','Diferença','Obs.']];
+      const body=sizes.map(n=>vol?[String(n),String(t.grade[n]),'','[    ]','']:[String(n),String(t.grade[n]),'','','']);
+      body.push(['TOTAL',String(t.total),'','','']);
+      doc.autoTable({startY:y0,head,body,theme:'grid',styles:{fontSize:fs,cellPadding:1,minCellHeight:rh,valign:'middle',halign:'center',lineColor:[200,200,205]},headStyles:{fillColor:[199,67,117],textColor:255,minCellHeight:7},
+        columnStyles:{0:{fontStyle:'bold',cellWidth:30},4:{halign:'left'}},didParseCell:d=>{if(d.section==='body'&&d.row.index===sizes.length){d.cell.styles.fontStyle='bold';d.cell.styles.fillColor=[247,243,245]}},margin:{left:14,right:14,bottom:50}});
+      const pg=doc.internal.getNumberOfPages();doc.setPage(pg);
+      let y=H-44;doc.setDrawColor(150);doc.setTextColor(60);doc.setFontSize(9);
+      doc.text('Divergências / observações na conferência:',14,y);doc.line(14,y+6,W-14,y+6);doc.line(14,y+13,W-14,y+13);
+      y=H-20;doc.line(14,y,72,y);doc.line(78,y,136,y);doc.line(142,y,W-14,y);
+      doc.setFontSize(8.5);doc.setTextColor(120);doc.text('Enviado por',43,y+4,{align:'center'});doc.text('Conferido por (destino)',107,y+4,{align:'center'});doc.text('Data da conferência',(142+W-14)/2,y+4,{align:'center'});
+      if(t.obs){doc.setFontSize(8.5);doc.text('Obs. do envio: '+t.obs,14,H-9)}
+      doc.text('Estoque de '+(t.est==='sapatilha'?'sapatilha':'corte')+' creditado em: '+unNome(t.cred),W-14,H-9,{align:'right'});
+    };
+    pagina(null);
+    if(vols>1)for(let v=1;v<=vols;v++){doc.addPage();pagina(v)}
+    const n=doc.getNumberOfPages();
+    for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(140);doc.text('Romaneio '+numStr+' · '+ref+' · página '+i+' de '+n,W/2,H-4,{align:'center'})}
+    const nome=('romaneio-'+numStr+'-'+ref+'-'+t.de+'-para-'+t.para+'.pdf').toLowerCase().replace(/[^a-z0-9.-]/g,'-');
+    await dls.save({filename:nome,data:new Blob([doc.output('arraybuffer')],{type:'application/pdf'})});toast('Romaneio pronto: '+nome);
+  }catch(e){
+    if(e&&e.code==='declined')return;
+    console.error(e);toast(e&&e.code==='rejected_extension'?'Formato não permitido nesta visualização.':'Não foi possível gerar o romaneio ('+((e&&(e.code||e.message))||'erro')+').');
+  }
+}
+function transfCard(){
+  if(!isDir())return '';
+  const v=unAtual(),pm=unPermitidas();
+  const L=transfs().filter(t=>v==='ALL'?(pm.includes(t.de)||pm.includes(t.para)):(t.de===v||t.para===v)).sort((a,b)=>(b.num||0)-(a.num||0)).slice(0,30);
+  const rows=L.map(t=>`<tr><td class="num"><b>${String(t.num).padStart(4,'0')}</b></td><td class="num muted">${br(t.d)}</td><td><b>${t.oid?esc(t.codigo):('Estoque de '+(t.est==='sapatilha'?'sapatilha':'corte'))}</b><br><span class="faint sm">${esc(t.pnome)} · ${esc(t.cor)}</span></td>
+   <td>${esc(unNome(t.de))} → ${esc(unNome(t.para))}</td><td class="c num"><b>${ni(t.total)}</b><br><span class="faint sm">${t.vols||1} cx</span></td><td class="muted">${t.est==='sapatilha'?'Sapatilha':'Corte'}: ${esc(unNome(t.cred))}</td>
+   <td class="c">${t.status==='recebida'?`<span class="pill ok" title="Recebida por ${esc(t.recebidoPor||'')} em ${esc(t.recebidoEm||'')}">Recebida</span>`:'<span class="pill warn">A caminho</span>'}</td>
+   <td class="r" style="white-space:nowrap"><button class="ib" aria-label="Baixar romaneio ${t.num}" title="Baixar romaneio em PDF" data-act="trfPdf" data-id="${t.id}">${ic('file')}</button>${t.status!=='recebida'?`<button class="ib" aria-label="Marcar como recebida" title="Marcar como recebida" data-act="trfRecebida" data-id="${t.id}">${ic('check')}</button><button class="ib del" aria-label="Desfazer transferência ${t.num}" title="Desfazer transferência" data-act="trfDesfazer" data-id="${t.id}">${ic('trash')}</button>`:''}</td></tr>`).join('');
+  return `<div class="glass flush"><div class="row between" style="padding:18px 20px 6px"><h3>Transferências entre unidades</h3><span class="sm faint">caminhão na OS de Costura, ou "Transferir estoque" na aba Estoque</span></div><div class="tw"><table><thead><tr><th>Nº</th><th>Data</th><th>OS / estoque</th><th>Rota</th><th class="c">Peças</th><th>Estoque creditado</th><th class="c">Situação</th><th class="r"></th></tr></thead><tbody>${rows||'<tr><td colspan="8" class="empty">Nenhuma transferência ainda.</td></tr>'}</tbody></table></div></div>`;
+}
+Object.assign(A,{
+  transferir(d){formTransferir(+d.id)},
+  trfFill(d){
+    const f=$('#mf');if(!f||!ui.trfRows)return;
+    ui.trfRows.forEach(r=>{const i=f.elements['t'+r.n];if(i&&!i.disabled)i.value=(d.k==='grade'?r.disp:r.pronto)||''});trfTotal();
+  },
+  trfPdf(d){gerarRomaneio(transfs().find(t=>String(t.id)===String(d.id)))},
+  trfRecebida(d){
+    const t=transfs().find(x=>String(x.id)===String(d.id));if(!t)return;
+    confirmBox('Marcar a transferência <b>Nº '+String(t.num).padStart(4,'0')+'</b> como recebida e conferida em <b>'+esc(unNome(t.para))+'</b>?','Marcar como recebida',()=>{
+      t.status='recebida';t.recebidoPor=meuNome();t.recebidoEm=br(today());commit('Transferência marcada como recebida.',true)});
+  },
+  trfDesfazer(d){
+    const t=transfs().find(x=>String(x.id)===String(d.id));if(!t)return;
+    if(t.status==='recebida'){toast('Essa transferência já foi recebida. Ajuste o estoque manualmente se precisar.');return}
+    confirmBox('Desfazer a transferência <b>Nº '+String(t.num).padStart(4,'0')+'</b> ('+esc(t.codigo||('estoque de '+(t.est==='sapatilha'?'sapatilha':'corte')))+', '+ni(t.total)+' pç)? As peças voltam para o estoque de '+esc(unNome(t.de))+'.','Desfazer',async()=>{
+      try{
+        clearTimeout(flushT);await flush();
+        const adj=[];if(t.cred!==t.de)Object.keys(t.grade).forEach(n=>{const q=t.grade[n];
+          adj.push({u:t.de,pid:t.pid,cor:t.cor,n:+n,est:t.est||'corte',delta:q},{u:t.cred,pid:t.pid,cor:t.cor,n:+n,est:t.est||'corte',delta:-q})});
+        await ajusteSoma(adj);S.transf=transfs().filter(x=>x.id!==t.id);commit('Transferência desfeita. Estoque devolvido.',true);
+      }catch(e){console.error(e);toast('Não consegui desfazer: '+((e&&e.message)||'erro'))}
+    });
+  }
+});
+
+/* ======================= Transferir direto do estoque (corte ou sapatilha) ======================= */
+function formTransfEstoque(){
+  if(!isDir()){toast('Só a Diretoria transfere estoque entre unidades.');return}
+  if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para transferir estoque.');return}
+  const origem=unAtual(),dests=unidades().filter(x=>x[0]!==origem);
+  if(!dests.length){toast('Cadastre outra unidade em Acesso para poder transferir.');return}
+  const R=estoqueCalc([origem]),SZ=szDesc(),t0=ui.tse||(ui.tse={});
+  const est=t0.est==='sapatilha'?'sapatilha':'corte';
+  const lista=est2=>prodsOrd().filter(p=>prodTipo(p)===(est2==='corte'?'costura':'montagem')).map(p=>{const m=R[est2][p.id];return{p,cores:m?[...m.values()].filter(c=>SZ.some(n=>valEst(c,n)>0)):[]}}).filter(x=>x.cores.length);
+  const L=lista(est);
+  if(!L.length&&!lista(est==='corte'?'sapatilha':'corte').length){toast('Não há peças no estoque de '+unNome(origem)+' para transferir.');ui.tse=null;return}
+  const estSel=`<label class="f">Estoque de origem<select name="est" data-chg="tseSel"><option value="corte" ${est==='corte'?'selected':''}>Estoque de corte (costura pronta)</option><option value="sapatilha" ${est==='sapatilha'?'selected':''}>Estoque de sapatilha (produtos prontos)</option></select></label>`;
+  const paraSel=`<label class="f">Enviar para<select name="para">${dests.map(([u,l])=>`<option value="${esc(u)}" ${(t0.para?t0.para===u:u==='PIR'||u===dests[0][0])?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`;
+  const extra=`<div class="fgrid"><label class="f">Nº de caixas (volumes)<input name="vols" type="number" min="1" max="99" value="${esc(t0.vols||1)}" required></label><label class="f">Observação (opcional)<input name="obs" maxlength="120" value="${esc(t0.obs||'')}" placeholder="Ex: transportadora, motorista"></label></div>
+   <label class="row" style="gap:8px"><input type="checkbox" name="pdf" ${t0.pdf===false?'':'checked'} style="width:auto"> Criar romaneio de envio em PDF (uma folha por caixa, para colar)</label>`;
+  if(!L.length){modal('Transferir estoque',`${estSel}<div class="pill warn" style="white-space:normal">Não há peças no estoque de ${est==='corte'?'corte':'sapatilha'} de ${esc(unNome(origem))}. Escolha o outro estoque.</div>`,'Transferir',()=>{toast('Escolha um estoque que tenha peças.');return false});return}
+  const pid=L.some(x=>x.p.id===t0.pid)?t0.pid:(L.some(x=>x.p.id===ui.estProd)?ui.estProd:L[0].p.id),cur=L.find(x=>x.p.id===pid),prod=cur.p;
+  const cor=cur.cores.find(c=>corKey(c.nome)===t0.ck)||cur.cores[0];
+  const sizes=SZ.filter(n=>valEst(cor,n)>0);
+  ui.trfRows=sizes.map(n=>({n,disp:valEst(cor,n),pronto:0}));
+  modal('Transferir estoque de '+unNome(origem),`${estSel}
+   <div class="fgrid"><label class="f">Produto<select name="pid" data-chg="tseSel">${L.map(x=>`<option value="${x.p.id}" ${x.p.id===pid?'selected':''}>${esc(x.p.nome)}</option>`).join('')}</select></label>
+   <label class="f">Cor<select name="cor" data-chg="tseSel">${cur.cores.map(c=>`<option value="${esc(c.nome)}" ${c===cor?'selected':''}>${esc(c.nome)} · ${ni(totEst(c))} pç</option>`).join('')}</select></label></div>
+   ${paraSel}
+   <p class="sm faint" style="margin-top:-6px">As peças saem do estoque de ${est==='corte'?'corte':'sapatilha'} de ${esc(unNome(origem))} e entram no mesmo estoque da unidade escolhida.</p>
+   <div><div class="row between" style="margin-bottom:8px"><span class="sm muted">Quantidade por numeração (o número pequeno é o que há no estoque)</span><button type="button" class="btn sm" data-act="trfFill" data-k="grade">Enviar tudo</button></div>
+   <div class="sizes">${sizes.map(n=>`<label>${n} <span class="faint">/${valEst(cor,n)}</span><input type="number" min="0" max="${valEst(cor,n)}" name="t${n}" data-trf aria-label="Quantidade do ${n}"></label>`).join('')}</div></div>
+   <div class="row between"><span class="muted sm">Total a transferir</span><b id="trfTot" style="font-size:18px">0 peça(s)</b></div>${extra}`,'Transferir',fd=>{
+    const R2=estoqueCalc([origem]),m=R2[est][prod.id],c=m&&m.get(corKey(cor.nome)),grade={};let tot=0;
+    for(const n of SZ){const v=parseInt(fd.get('t'+n))||0;if(v<=0)continue;const disp=c?valEst(c,n):0;
+      if(v>disp){toast('Numeração '+n+': só há '+disp+' no estoque.');return false}grade[n]=v;tot+=v}
+    if(!tot){toast('Informe ao menos uma quantidade.');return false}
+    executaTransfEstoque({est,prod,cor:cor.nome,origem,para:String(fd.get('para')),grade,tot,vols:Math.max(1,parseInt(fd.get('vols'))||1),obs:String(fd.get('obs')||'').trim(),pdf:fd.get('pdf')==='on'});
+    return false;
+  },true);
+  trfTotal();
+}
+Object.assign(C,{tseSel(el){
+  const f=$('#mf');if(!f)return;const t=ui.tse||(ui.tse={});
+  if(f.est.value!==t.est){t.est=f.est.value;t.pid=null;t.ck=null}
+  else if(f.pid&&+f.pid.value!==t.pid){t.pid=+f.pid.value;t.ck=null}
+  else if(f.cor)t.ck=corKey(f.cor.value);
+  if(f.para)t.para=f.para.value;if(f.vols)t.vols=f.vols.value;if(f.obs)t.obs=f.obs.value;if(f.pdf)t.pdf=f.pdf.checked;
+  formTransfEstoque();
+}});
+Object.assign(A,{estTransf(){ui.estFab=false;ui.tse={est:ui.estTipo==='sapatilha'?'sapatilha':'corte',pid:ui.estProd};formTransfEstoque()}});
+async function executaTransfEstoque(x){
+  if(ui.trBusy)return;ui.trBusy=true;
+  try{
+    clearTimeout(flushT);await flush();
+    const adj=[];Object.keys(x.grade).forEach(n=>{const q=x.grade[n];
+      adj.push({u:x.origem,pid:x.prod.id,cor:x.cor,n:+n,est:x.est,delta:-q},{u:x.para,pid:x.prod.id,cor:x.cor,n:+n,est:x.est,delta:q})});
+    await ajusteSoma(adj);
+    const ag=new Date(),hh=pad(ag.getHours())+':'+pad(ag.getMinutes()),num=Math.max(0,...transfs().map(t=>t.num||0))+1;
+    const rec={id:uid(),num,d:today(),h:hh,oid:null,codigo:'',cliente:'',cor:x.cor,pid:x.prod.id,pnome:x.prod.nome,de:x.origem,para:x.para,cred:x.para,est:x.est,grade:x.grade,total:x.tot,vols:x.vols,obs:x.obs,autor:meuNome(),status:'enviada'};
+    transfs().push(rec);
+    if(sb){try{
+      const av={id:uid(),d:today(),h:hh,texto:'Transferência Nº '+num+': '+x.tot+' pç de '+rec.pnome+' '+x.cor+' do estoque de '+(x.est==='sapatilha'?'sapatilha':'corte')+', enviadas de '+unNome(x.origem)+' para '+unNome(x.para)+' por '+meuNome()+'. Já estão no estoque de '+unNome(x.para)+'. Confira com o romaneio na chegada.',urgente:false,de:'sis',autor:'Sistema',lido:false,u:x.para};
+      await sb.from('registros').upsert({colecao:'avisos',id:String(av.id),dados:av},{onConflict:'colecao,id'});
+    }catch(e){console.error(e)}}
+    ui.tse=null;closeModal();commit('Transferência Nº '+num+' registrada: '+x.tot+' peça(s) para '+unNome(x.para)+'.',true);
+    if(x.pdf)await gerarRomaneio(rec);
+  }catch(e){console.error(e);toast('Não consegui transferir: '+((e&&e.message)||'erro')+'. Nada foi alterado no estoque.')}
+  ui.trBusy=false;
 }
 
 /* partida */

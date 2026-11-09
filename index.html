@@ -1272,7 +1272,7 @@ const A={
 const C={
   perDate(el){ui.per[el.dataset.k][el.dataset.f]=el.value;draw(true)},
   pts(el){const e=etapaDe(+el.dataset.id);const v=parseFloat(el.value);e.pontos=isNaN(v)||v<0?0:v;persist();toast('Pontos atualizados.')},
-  osStatus(el){osDe(+el.dataset.id).status=el.value;commit('',true)},
+  osStatus(el){const o=osDe(+el.dataset.id);if(!o)return;o.status=el.value;if(el.value==='Concluída'){o.finForcada=true;commit(osProgress(o)<100?'OS '+o.codigo+' finalizada: a grade inteira entrou no estoque.':'',true)}else{delete o.finForcada;commit('',true)}},
   prodOs(el){ui.prod.os=+el.value;draw(true)},
   relK(el){ui.relK=el.value;draw(true)},
   prodOs2(el){ui.prod.os2=+el.value;draw(true)},
@@ -1483,6 +1483,8 @@ function feitoOs(o,n){
   let m=Infinity;es.forEach(e=>{m=Math.min(m,doneMap(o,e.id)[n]||0)});
   return Number.isFinite(m)?m:0;
 }
+/* Quantidade que conta como pronta: OS finalizada manualmente entra inteira; as demais, só o que terminou todas as etapas. */
+function prontaOs(o,n){return o.status==='Concluída'&&o.finForcada?(Number(o.grade[n])||0):feitoOs(o,n)}
 /* R[corte|sapatilha][pid] = Map(corKey -> {nome, base:{n}, adj:{n}})
    corte      = costura finalizada - o que as OS de Montagem já puxaram (grade inteira, ao criar a OS)
    sapatilha  = montagem finalizada
@@ -1495,9 +1497,9 @@ function estoqueCalc(uns){
     if(!uns.includes(uOf(o))||!corKey(o.cor))return;
     const p=prodDe(o.pid);if(!p)return;
     const ns=Object.keys(o.grade).map(Number);
-    if(prodTipo(p)==='costura'){cel('corte',o.pid,o.cor);ns.forEach(n=>add('corte',o.pid,o.cor,n,feitoOs(o,n)))}
+    if(prodTipo(p)==='costura'){cel('corte',o.pid,o.cor);ns.forEach(n=>add('corte',o.pid,o.cor,n,prontaOs(o,n)))}
     else{cel('sapatilha',o.pid,o.cor);const src=o.tipo==='montagem'?corteSrc(p):null;
-      ns.forEach(n=>{add('sapatilha',o.pid,o.cor,n,feitoOs(o,n));if(src)add('corte',src.id,o.cor,n,-(Number(o.grade[n])||0))})}
+      ns.forEach(n=>{add('sapatilha',o.pid,o.cor,n,prontaOs(o,n));if(src)add('corte',src.id,o.cor,n,-(Number(o.grade[n])||0))})}
   });
   ajustes().filter(a=>uns.includes(a.u)).forEach(a=>{cel(a.est,a.pid,a.cor).adj[a.n]=((cel(a.est,a.pid,a.cor).adj[a.n])||0)+a.delta});
   return R;
@@ -1536,8 +1538,8 @@ V.estoque=()=>{
     <tfoot><tr><td>Total</td>${SZ.map(n=>`<td>${col[n]?ni(col[n]):''}</td>`).join('')}<td>${ni(cur.total)}</td></tr></tfoot></table></div></div>`;
   }
   const nota=est==='corte'
-    ?'Cada numeração entra quando todas as etapas de costura dela terminam, mesmo com a OS ainda em andamento. As OS de Montagem retiram daqui a quantidade da grade assim que são criadas.'
-    :'Cada numeração entra quando todas as etapas de montagem dela terminam, mesmo com a OS ainda em andamento.';
+    ?'Cada numeração entra quando todas as etapas de costura dela terminam, mesmo com a OS ainda em andamento. OS finalizada manualmente entra inteira. As OS de Montagem retiram daqui a quantidade da grade assim que são criadas.'
+    :'Cada numeração entra quando todas as etapas de montagem dela terminam, mesmo com a OS ainda em andamento. OS finalizada manualmente entra inteira.';
   const fab=isDir()?`<div class="estfab">${ui.estFab?`<div class="estfab-p"><button data-act="estTransf">${ic('truck')}<span>Transferir estoque</span></button><button data-act="estNovaMont">${ic('plus')}<span>Criar OS de <b>Montagem</b></span></button><button data-act="estPlanilha">${ic('download')}<span>Baixar Planilha</span></button></div>`:''}<button class="estfab-b" data-act="estFab" aria-label="Ações do estoque" aria-expanded="${!!ui.estFab}">${ic('gear')}</button></div>`:'';
   return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${est==='sapatilha'?baixaBar():''}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p>${est==='sapatilha'?baixaCard():''}${transfCard()}</div>${fab}`;
 };
@@ -1643,7 +1645,7 @@ Object.assign(A,{
       S.os.forEach(o=>{if(o.setores&&o.setores.includes(x))o.setores=o.setores.filter(y=>y!==x)});
       commit('Setor "'+x+'" excluído.',true)})},
   finOs(d){const o=osDe(+d.id);if(!o)return;const p=osProgress(o);
-    confirmBox('Finalizar a OS <b>'+esc(o.codigo)+'</b>?'+(p<100?' Ela está com '+ni(p)+'% das etapas lançadas e será marcada como concluída mesmo assim.':''),'Finalizar',()=>{o.status='Concluída';commit('OS '+o.codigo+' finalizada.',true)})}
+    confirmBox('Finalizar a OS <b>'+esc(o.codigo)+'</b>?'+(p<100?' Ela está com '+ni(p)+'% das etapas lançadas. Será marcada como concluída e a quantidade inteira da OS entra no estoque, inclusive as numerações que não terminaram todas as etapas.':''),'Finalizar',()=>{o.status='Concluída';o.finForcada=true;commit('OS '+o.codigo+' finalizada'+(p<100?': a grade inteira entrou no estoque.':'.'),true)})}
 });
 Object.assign(C,{
   setorSel(el){const b=$('#novoSetorBox');if(!b)return;b.hidden=el.value!=='__novo__';if(!b.hidden){const i=b.querySelector('input');if(i)i.focus()}},
@@ -2276,7 +2278,7 @@ function formTransferir(oid){
   if(!dests.length){toast('Cadastre outra unidade em Acesso para poder transferir.');return}
   const env=jaEnv(o.id);
   const rows=Object.keys(o.grade).map(Number).sort((a,b)=>b-a).map(n=>{
-    const g=Number(o.grade[n])||0,e=env[n]||0,disp=Math.max(0,g-e),pronto=Math.min(disp,Math.max(0,feitoOs(o,n)-e));return{n,g,disp,pronto}});
+    const g=Number(o.grade[n])||0,e=env[n]||0,disp=Math.max(0,g-e),pronto=Math.min(disp,Math.max(0,prontaOs(o,n)-e));return{n,g,disp,pronto}});
   if(!rows.some(r=>r.disp>0)){toast('Toda a grade dessa ficha já foi transferida.');return}
   ui.trfRows=rows;const p=prodDe(o.pid),totDisp=rows.reduce((s,r)=>s+r.disp,0);
   const dpad=(dests.find(x=>x[0]==='PIR')||dests[0])[0];

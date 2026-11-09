@@ -621,12 +621,13 @@ V.prods=()=>{
 };
 
 V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido. Dê dois cliques numa ficha para vê-la como a gerência vê.',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
+ ${osFiltroBar()}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
- ${S.os.map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
+ ${osFiltradas().map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
   return `<tr class="os-${tipoOs(o)}" data-fid="${o.id}" style="cursor:pointer"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${transfPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
   <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'?'<span class="pill ok">Finalizada</span>':''}</div></td>
   <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}" ${tool('osedit')?'':'disabled'}><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
-  <td class="r">${isDir()&&tipoOs(o)==='costura'?`<button class="ib" aria-label="Transferir ${esc(o.codigo)} para outra unidade" title="Transferir para outra unidade" data-act="transferir" data-id="${o.id}">${ic('truck')}</button>`:''}${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${tool('osdel')?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div>${transfCard()}</div>`;
+  <td class="r">${isDir()&&tipoOs(o)==='costura'?`<button class="ib" aria-label="Transferir ${esc(o.codigo)} para outra unidade" title="Transferir para outra unidade" data-act="transferir" data-id="${o.id}">${ic('truck')}</button>`:''}${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${tool('osdel')?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||`<tr><td colspan="8" class="empty">${S.os.length?'Nenhuma OS neste filtro.':'Nenhuma OS cadastrada.'}</td></tr>`}</tbody></table></div></div>${transfCard()}</div>`;
 
 function osFrac(oid,eid,de,ate){const o=osDe(oid);const total=Object.values(o.grade).reduce((s,v)=>s+Number(v),0);if(!total)return 0;
   let d=0;Object.values(doneMap(o,eid,de,ate)).forEach(v=>d+=v);return d/total*100}
@@ -1529,7 +1530,7 @@ V.estoque=()=>{
   else{
     const col={};SZ.forEach(n=>col[n]=0);
     const rows=cur.linhas.map(c=>`<tr><td>${esc(c.nome)}</td>${SZ.map(n=>{const q=valEst(c,n);col[n]+=q;const aj=c.adj[n];
-      return `<td class="${q?'':'z'} ${ed?'ed':''} ${aj?'adj':''}" ${ed?`data-act="estCell" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-n="${n}" data-e="${est}" data-v="${q}"`:''} ${aj?`title="Ajuste no estoque (${aj>0?'+':''}${aj}): entrada manual ou transferência entre unidades"`:''}>${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(totEst(c))}</td></tr>`).join('');
+      return `<td class="${q?'':'z'} ${ed?'ed':''} ${aj?'adj':''}" ${ed?`data-act="estCell" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-n="${n}" data-e="${est}" data-v="${q}"`:''} ${aj?`title="Ajuste no estoque (${aj>0?'+':''}${aj}): entrada manual, transferência ou baixa"`:''}>${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(totEst(c))}</td></tr>`).join('');
     grade=`<div class="glass"><div class="row between" style="margin-bottom:10px;flex-wrap:wrap"><b>${esc(cur.p.nome)} · ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'}</b><span class="row" style="gap:12px"><span class="sm muted">${cur.linhas.length} cor(es) · ${ni(cur.total)} pç · ${unAtual()==='ALL'?'todas as unidades':esc(unNome(unAtual()))}</span>${ed?`<button class="btn sm" data-act="estTransf">${ic('truck')}Transferir</button><button class="btn sm" data-act="estNovaCor">${ic('plus')}Adicionar cor</button>`:''}</span></div>
     <div class="estWrap"><table class="estGrid"><thead><tr><th>Cor \ Numeração</th>${SZ.map(n=>`<th>${n}</th>`).join('')}<th>Total</th></tr></thead><tbody>${rows}</tbody>
     <tfoot><tr><td>Total</td>${SZ.map(n=>`<td>${col[n]?ni(col[n]):''}</td>`).join('')}<td>${ni(cur.total)}</td></tr></tfoot></table></div></div>`;
@@ -1538,7 +1539,7 @@ V.estoque=()=>{
     ?'Cada numeração entra quando todas as etapas de costura dela terminam, mesmo com a OS ainda em andamento. As OS de Montagem retiram daqui a quantidade da grade assim que são criadas.'
     :'Cada numeração entra quando todas as etapas de montagem dela terminam, mesmo com a OS ainda em andamento.';
   const fab=isDir()?`<div class="estfab">${ui.estFab?`<div class="estfab-p"><button data-act="estTransf">${ic('truck')}<span>Transferir estoque</span></button><button data-act="estNovaMont">${ic('plus')}<span>Criar OS de <b>Montagem</b></span></button><button data-act="estPlanilha">${ic('download')}<span>Baixar Planilha</span></button></div>`:''}<button class="estfab-b" data-act="estFab" aria-label="Ações do estoque" aria-expanded="${!!ui.estFab}">${ic('gear')}</button></div>`:'';
-  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p>${transfCard()}</div>${fab}`;
+  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${est==='sapatilha'?baixaBar():''}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p>${est==='sapatilha'?baixaCard():''}${transfCard()}</div>${fab}`;
 };
 
 /* ---------- OS de Montagem (puxa do estoque de corte) ---------- */
@@ -1655,9 +1656,9 @@ Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPl
 /* ---------- Supabase: login, sincronização e tempo real ---------- */
 const CFG=window.RITMUS_CONFIG||{};
 let lastPersist=0,sb=null,chan=null,snap={},flushT=null,flushing=false,again=false,redrawPending=false,redrawT=null,subOnce=false;
-const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash','estajustes','transf'];
+const COLS=['funcs','produtos','etapas','os','perdas','avisos','faltas','aps','dash','estajustes','transf','baixas'];
 const ALL=[...COLS,'cfg'];
-const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],estajustes:[],transf:[],nid:1});
+const emptyState=()=>({cfg:{dN:'Diretoria',gN:'Gerente'},funcs:[],produtos:[],etapas:[],os:[],aps:[],perdas:[],avisos:[],faltas:[],dash:[],estajustes:[],transf:[],baixas:[],nid:1});
 const canon=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.keys(x).sort().reduce((o,kk)=>(o[kk]=x[kk],o),{}):x);
 const keyOf=(c,x)=>c==='aps'?[x.d,x.fid,x.oid,x.eid].join('|'):String(x.id);
 const rowsOf=c=>c==='cfg'?[['main',S.cfg]]:S[c].map(x=>[keyOf(c,x),x]);
@@ -2460,6 +2461,116 @@ async function executaTransfEstoque(x){
   }catch(e){console.error(e);toast('Não consegui transferir: '+((e&&e.message)||'erro')+'. Nada foi alterado no estoque.')}
   ui.trBusy=false;
 }
+
+/* ======================= Baixa do estoque de sapatilha (PDF temporário) ======================= */
+const baixas=()=>S.baixas||(S.baixas=[]);
+const expBaixa=d=>{const [y,m]=d.split('-').map(Number);return ymd(new Date(y,m+1,0))};
+/* PDFs de baixa são temporários: somem depois do último dia do mês seguinte à baixa */
+function purgeBaixas(){
+  if(!isDir()||!S||!S.baixas||!S.baixas.length)return;
+  const t=today(),keep=S.baixas.filter(b=>!b.exp||b.exp>=t);
+  if(keep.length!==S.baixas.length){S.baixas=keep;persist()}
+}
+{const _d=draw;draw=function(k){try{purgeBaixas()}catch(e){console.error(e)}return _d(k)}}
+function baixaBar(){
+  if(!isDir())return '';
+  return `<div class="glass row between" style="padding:12px 16px"><span class="sm muted">Fechamento: gera um PDF com todo o estoque de sapatilha${unAtual()==='ALL'?'':' de '+esc(unNome(unAtual()))}, por produto, e zera o estoque.</span><button class="btn primary" data-act="baixaEstoque">${ic('download')}Dar baixa</button></div>`;
+}
+function baixaCard(){
+  if(!isDir())return '';
+  const v=unAtual(),pm=unPermitidas();
+  const L=baixas().filter(b=>v==='ALL'?pm.includes(b.u):b.u===v).sort((a,b)=>(b.num||0)-(a.num||0));
+  const rows=L.map(b=>`<tr><td class="num"><b>${String(b.num).padStart(4,'0')}</b></td><td class="num muted">${br(b.d)} ${esc(b.h)}</td>${v==='ALL'?`<td>${esc(unNome(b.u))}</td>`:''}<td class="c num"><b>${ni(b.total)}</b></td><td class="muted">${esc(b.autor)}${b.obs?`<br><span class="faint sm">${esc(b.obs)}</span>`:''}</td><td class="muted">${br(b.exp)}</td><td class="r"><button class="ib" aria-label="Baixar PDF da baixa ${b.num}" title="Baixar PDF" data-act="baixaPdf" data-id="${b.id}">${ic('file')}</button></td></tr>`).join('');
+  return `<div class="glass flush"><div class="row between" style="padding:18px 20px 6px"><h3>Histórico de baixas</h3><span class="sm faint">PDFs temporários: apagados automaticamente no fim do mês seguinte à baixa</span></div><div class="tw"><table><thead><tr><th>Nº</th><th>Data</th>${v==='ALL'?'<th>Unidade</th>':''}<th class="c">Peças</th><th>Responsável</th><th>Disponível até</th><th class="r"></th></tr></thead><tbody>${rows||`<tr><td colspan="${v==='ALL'?7:6}" class="empty">Nenhuma baixa guardada.</td></tr>`}</tbody></table></div></div>`;
+}
+function resumoSapatilha(u){
+  const R=estoqueCalc([u]),SZ=szDesc(),prods=[];
+  prodsOrd().filter(p=>prodTipo(p)==='montagem').forEach(p=>{
+    const m=R.sapatilha[p.id];if(!m)return;const cores=[];
+    [...m.values()].forEach(c=>{const grade={};SZ.forEach(n=>{const q=valEst(c,n);if(q>0)grade[n]=q});if(Object.keys(grade).length)cores.push({cor:c.nome,grade})});
+    if(cores.length)prods.push({pid:p.id,nome:p.nome,cores});
+  });
+  const sum=g=>Object.values(g).reduce((s,v)=>s+v,0);
+  prods.forEach(p=>{p.total=p.cores.reduce((s,c)=>s+sum(c.grade),0)});
+  return{prods,total:prods.reduce((s,p)=>s+p.total,0)};
+}
+async function executaBaixa(obs){
+  if(ui.trBusy)return;ui.trBusy=true;
+  try{
+    const u=unAtual();clearTimeout(flushT);await flush();
+    const r=resumoSapatilha(u);
+    if(!r.total){toast('O estoque de sapatilha de '+unNome(u)+' já está zerado.');ui.trBusy=false;return}
+    const adj=[];r.prods.forEach(p=>p.cores.forEach(c=>Object.keys(c.grade).forEach(n=>adj.push({u,pid:p.pid,cor:c.cor,n:+n,est:'sapatilha',delta:-c.grade[n]}))));
+    await ajusteSoma(adj);
+    const ag=new Date(),num=Math.max(0,...baixas().map(b=>b.num||0))+1;
+    const rec={id:uid(),num,u,d:today(),h:pad(ag.getHours())+':'+pad(ag.getMinutes()),exp:expBaixa(today()),autor:meuNome(),obs,total:r.total,prods:r.prods};
+    baixas().push(rec);closeModal();commit('Baixa Nº '+num+' feita: '+ni(r.total)+' peça(s). Estoque de sapatilha zerado.',true);
+    await gerarBaixaPdf(rec);
+  }catch(e){console.error(e);toast('Não consegui dar baixa: '+((e&&e.message)||'erro')+'. O estoque não foi alterado.')}
+  ui.trBusy=false;
+}
+async function gerarBaixaPdf(b){
+  if(!b)return;
+  if(!(window.jspdf&&window.jspdf.jsPDF)){toast('Biblioteca do PDF não carregou. Recarregue a página.');return}
+  const dls=await getDl();if(!dls)return;
+  try{
+    const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+    const sizes=[...new Set(b.prods.flatMap(p=>p.cores.flatMap(c=>Object.keys(c.grade).map(Number))))].sort((a,c)=>c-a),numStr=String(b.num).padStart(4,'0');
+    try{doc.addImage(LOGO,'PNG',14,8,10,11)}catch(e){}
+    doc.setFontSize(15);doc.setTextColor(30);doc.text('Baixa de estoque de sapatilha Nº '+numStr,28,14);
+    doc.setFontSize(9);doc.setTextColor(120);doc.text(unNome(b.u)+' · '+br(b.d)+' às '+b.h+' · por '+b.autor+' · '+ni(b.total)+' peças no total'+(b.obs?' · '+b.obs:''),28,19.5);
+    let y=26;
+    b.prods.forEach(p=>{
+      const need=12+(p.cores.length+2)*5.2;
+      if(y+need>H-14&&y>30){doc.addPage();y=14}
+      doc.setFontSize(11);doc.setTextColor(30);doc.text(p.nome,14,y+4);doc.setFontSize(9);doc.setTextColor(120);doc.text(ni(p.total)+' peças',W-14,y+4,{align:'right'});
+      const tot={};sizes.forEach(n=>{tot[n]=p.cores.reduce((s,c)=>s+(c.grade[n]||0),0)});
+      doc.autoTable({startY:y+6,head:[['Cor',...sizes.map(String),'Total']],
+        body:[...p.cores.map(c=>[c.cor,...sizes.map(n=>c.grade[n]?String(c.grade[n]):''),String(Object.values(c.grade).reduce((s,v)=>s+v,0))]),['Total',...sizes.map(n=>tot[n]?String(tot[n]):''),String(p.total)]],
+        theme:'grid',styles:{fontSize:7.5,cellPadding:{top:1.1,bottom:1.1,left:.6,right:.6},halign:'center',lineColor:[210,210,215]},headStyles:{fillColor:[199,67,117],textColor:255},
+        columnStyles:{0:{halign:'left',fontStyle:'bold',cellWidth:30,cellPadding:{top:1.1,bottom:1.1,left:1.6,right:.6}}},
+        didParseCell:d=>{if(d.section==='body'&&d.row.index===p.cores.length){d.cell.styles.fontStyle='bold';d.cell.styles.fillColor=[247,243,245]}if(d.section==='body'&&d.column.index===sizes.length+1)d.cell.styles.fontStyle='bold'},
+        margin:{left:14,right:14,bottom:14}});
+      y=doc.lastAutoTable.finalY+7;
+    });
+    if(y>H-22){doc.addPage();y=16}
+    doc.setFontSize(11);doc.setTextColor(30);doc.text('TOTAL GERAL: '+ni(b.total)+' peças',14,y+3);
+    doc.setFontSize(8);doc.setTextColor(120);doc.text('Estoque zerado no sistema em '+br(b.d)+'. Este PDF fica guardado no histórico até '+br(b.exp)+'.',14,y+9);
+    const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(140);doc.text('Baixa '+numStr+' · '+unNome(b.u)+' · página '+i+' de '+n,W-14,H-6,{align:'right'})}
+    const nome=('baixa-sapatilha-'+numStr+'-'+b.u+'-'+b.d+'.pdf').toLowerCase().replace(/[^a-z0-9.-]/g,'-');
+    await dls.save({filename:nome,data:new Blob([doc.output('arraybuffer')],{type:'application/pdf'})});toast('PDF da baixa pronto: '+nome);
+  }catch(e){
+    if(e&&e.code==='declined')return;
+    console.error(e);toast(e&&e.code==='rejected_extension'?'Formato não permitido nesta visualização.':'Não foi possível gerar o PDF ('+((e&&(e.code||e.message))||'erro')+').');
+  }
+}
+Object.assign(A,{
+  baixaEstoque(){
+    if(!isDir()){toast('Só a Diretoria dá baixa no estoque.');return}
+    if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para dar baixa.');return}
+    const u=unAtual(),r=resumoSapatilha(u);
+    if(!r.total){toast('O estoque de sapatilha de '+unNome(u)+' já está zerado.');return}
+    modal('Dar baixa no estoque de sapatilha',`<p>Vai ser gerado um PDF com <b>todo o estoque de sapatilha de ${esc(unNome(u))}</b>, separado por produto, e o estoque será <b>zerado</b>.</p>
+     <div class="glass" style="padding:10px 14px;border-radius:14px">${r.prods.map((p,i)=>`<div class="row between" style="padding:4px 0;border-top:${i?'1px solid var(--line)':'0'}"><span>${esc(p.nome)}</span><b class="num">${ni(p.total)} pç</b></div>`).join('')}<div class="row between" style="padding:6px 0 0;border-top:1px solid var(--line-2);margin-top:4px"><b>Total</b><b class="num">${ni(r.total)} pç</b></div></div>
+     <label class="f">Observação (opcional)<input name="obs" maxlength="120" placeholder="Ex: fechamento de novembro"></label>
+     <p class="sm faint">O PDF fica no histórico de baixas até ${br(expBaixa(today()))} e depois é apagado automaticamente. Essa ação não tem botão de desfazer.</p>`,'Dar baixa e gerar PDF',fd=>{executaBaixa(String(fd.get('obs')||'').trim());return false});
+  },
+  baixaPdf(d){gerarBaixaPdf(baixas().find(b=>String(b.id)===String(d.id)))}
+});
+
+/* ======================= Filtro das OS ======================= */
+function osFiltradas(){
+  const t=ui.osTipo||'todas',f=!!ui.osFin;
+  return S.os.filter(o=>(t==='todas'||tipoOs(o)===t)&&(!f||o.status==='Concluída'));
+}
+function osFiltroBar(){
+  const t=ui.osTipo||'todas',f=!!ui.osFin;
+  const n=fn=>S.os.filter(fn).length;
+  const b=(k,l,c)=>`<button class="${t===k?'on':''}" data-act="osTipo" data-k="${k}">${l} <span class="num sm" style="opacity:.65">${c}</span></button>`;
+  return `<div class="row" style="gap:10px"><div class="seg" role="group" aria-label="Filtrar por tipo">${b('todas','Todas',S.os.length)}${b('costura','Costura',n(o=>tipoOs(o)==='costura'))}${b('montagem','Montagem',n(o=>tipoOs(o)==='montagem'))}</div>
+  <div class="seg" role="group" aria-label="Filtrar por situação"><button class="${f?'on':''}" aria-pressed="${f}" data-act="osFin">Finalizadas <span class="num sm" style="opacity:.65">${n(o=>o.status==='Concluída')}</span></button></div></div>`;
+}
+Object.assign(A,{osTipo(d){ui.osTipo=d.k;draw(true)},osFin(){ui.osFin=!ui.osFin;draw(true)}});
 
 /* partida */
 (async function boot(){

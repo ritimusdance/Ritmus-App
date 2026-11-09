@@ -43,6 +43,27 @@ tr.os-montagem td:first-child{box-shadow:inset 3px 0 0 #60a5fa}
 .escolha button.c:hover{border-color:#fbbf24}.escolha button.m:hover{border-color:#60a5fa}
 .escolha button.c b{color:#fbbf24}.escolha button.m b{color:#60a5fa}
 @media(max-width:480px){.escolha{grid-template-columns:1fr}}
+
+/* ---- produtos retráteis e tipos ---- */
+details.prod>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+details.prod>summary::-webkit-details-marker{display:none}
+.pt-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pt-h::before{content:'▸';color:var(--fg-3);font-size:12px}
+details.prod[open]>summary .pt-h::before{content:'▾'}
+.pt-b{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+details.prod.pt-costura{border-left:3px solid #fbbf24}
+details.prod.pt-montagem{border-left:3px solid #60a5fa}
+details.prod.pt-costura[open]{background:rgba(251,191,36,.04)}
+details.prod.pt-montagem[open]{background:rgba(96,165,250,.04)}
+.et-x{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-bottom:4px}
+.et-x select{width:auto;padding:3px 8px;font-size:12px}
+.tp{position:relative;padding:16px 12px;border-radius:16px;background:var(--glass);border:1px solid var(--line-2);display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;cursor:pointer}
+.tp input{position:absolute;opacity:0;pointer-events:none}
+.tp b{font-size:15px}.tp small{font-size:11.5px;color:var(--fg-3)}
+.tp.c b{color:#fbbf24}.tp.m b{color:#60a5fa}
+.tp.c:has(input:checked){border-color:#fbbf24;background:rgba(251,191,36,.10)}
+.tp.m:has(input:checked){border-color:#60a5fa;background:rgba(96,165,250,.10)}
+.tp:has(input:focus-visible){outline:2px solid var(--fg);outline-offset:2px}
 </style>
 <title>Ritmus Produção</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -179,9 +200,9 @@ html,body{overflow-x:clip}
 .hb .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .prod{display:flex;flex-direction:column;gap:12px;container-type:inline-size}
-.et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,116px) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px 24px 32px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
 .et input{padding:5px 8px;text-align:center;font-variant-numeric:tabular-nums}
-.add-et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) minmax(96px,116px) 76px auto;gap:8px}
+.add-et{display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,132px) 76px auto;gap:8px}
 .et select,.add-et select{padding:5px 8px;font-size:12.5px}
 [hidden]{display:none!important}
 @container (max-width:480px){.et{grid-template-columns:minmax(0,1fr) 76px 24px 32px}.et select{order:5;grid-column:1/-1}.add-et{grid-template-columns:minmax(0,1fr) 76px}.add-et select,.add-et .btn{grid-column:1/-1}}
@@ -524,16 +545,28 @@ V.funcs=()=>{
     <td class="r"><button class="ib" aria-label="Editar ${esc(f.nome)}" data-act="editFunc" data-id="${f.id}">${ic('pencil')}</button><button class="ib del" aria-label="Remover ${esc(f.nome)}" data-act="delFunc" data-id="${f.id}">${ic('trash')}</button></td></tr>`}).join('')||'<tr><td colspan="7" class="empty">Nenhum funcionário cadastrado.</td></tr>'}</tbody></table></div></div>${setoresCard()}</div>`;
 };
 
-V.prods=()=>`<div class="stack">${header('Produtos e etapas','Cada etapa vale pontos. Pontuação = quantidade concluída × pontos da etapa',`<button class="btn primary" data-act="newProd">${ic('plus')}Novo produto</button>`)}
- <div class="grid g2">${S.produtos.map(p=>{const es=S.etapas.filter(e=>e.pid===p.id).sort((a,b)=>a.ordem-b.ordem);
-  return `<div class="glass prod"><div class="row between"><h3>${esc(p.nome)} <span class="faint sm">inicial ${esc(inicialDe(p))}</span></h3><span><button class="ib" aria-label="Renomear ${esc(p.nome)}" data-act="editProd" data-id="${p.id}">${ic('pencil')}</button><button class="ib del" aria-label="Remover ${esc(p.nome)}" data-act="delProd" data-id="${p.id}">${ic('trash')}</button></span></div>
-  <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Tipo da etapa ${esc(e.nome)}" data-chg="etTipo" data-id="${e.id}"><option value="costura" ${etapaTipo(e)==='costura'?'selected':''}>Costura</option><option value="montagem" ${etapaTipo(e)==='montagem'?'selected':''}>Montagem</option></select><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
-  <div class="add-et"><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><select id="et-${p.id}" aria-label="Tipo da nova etapa"><option value="costura">Costura</option><option value="montagem">Montagem</option></select><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div>`}).join('')||'<div class="glass empty">Nenhum produto cadastrado.</div>'}</div></div>`;
+V.ficha=()=>V.ger();
+V.prods=()=>{
+  const open=ui.prodOpen||(ui.prodOpen=new Set());
+  const card=p=>{
+    const es=S.etapas.filter(e=>e.pid===p.id).sort((a,b)=>a.ordem-b.ordem),t=prodTipo(p),src=corteSrc(p);
+    const outros=e=>setoresAll().filter(x=>x!==e.setor&&!(e.extras||[]).includes(x));
+    return `<details class="glass prod pt-${t}" data-pid="${p.id}" ${open.has(p.id)?'open':''}>
+    <summary><div class="pt-h"><h3>${esc(p.nome)}</h3>${tipoProdPill(p)}<span class="faint sm">inicial ${esc(inicialDe(p))}</span></div><span class="row" style="gap:6px;flex-wrap:nowrap"><span class="faint sm">${es.length} etapa(s)</span><button class="ib" aria-label="Editar ${esc(p.nome)}" data-act="editProd" data-id="${p.id}">${ic('pencil')}</button><button class="ib del" aria-label="Remover ${esc(p.nome)}" data-act="delProd" data-id="${p.id}">${ic('trash')}</button></span></summary>
+    <div class="pt-b">${t==='montagem'?`<p class="sm faint" style="margin:0 0 8px">Puxa do estoque de corte de: <b style="color:var(--fg)">${src?esc(src.nome):'nenhum produto de Costura encontrado'}</b></p>`:''}
+    <div>${es.map(e=>`<div class="et"><span>${esc(e.nome)}</span><select aria-label="Setor da etapa ${esc(e.nome)}" data-chg="etSetor" data-id="${e.id}"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}" ${e.setor===st?'selected':''}>${esc(st)}</option>`).join('')}</select><input type="number" step="0.1" min="0" value="${e.pontos}" aria-label="Pontos de ${esc(e.nome)}" data-chg="pts" data-id="${e.id}"><span class="faint sm">pts</span><button class="ib del" aria-label="Remover etapa ${esc(e.nome)}" data-act="delEt" data-id="${e.id}">${ic('x')}</button>
+      <div class="et-x"><span class="faint sm">Também aceita:</span>${(e.extras||[]).map(x=>`<span class="chip">${esc(x)} <button type="button" class="ib del" style="width:18px;height:18px;vertical-align:middle" aria-label="Tirar ${esc(x)} da etapa ${esc(e.nome)}" data-act="etRmExtra" data-id="${e.id}" data-s="${esc(x)}">${ic('x')}</button></span>`).join('')}<select aria-label="Adicionar setor extra na etapa ${esc(e.nome)}" data-chg="etAddExtra" data-id="${e.id}"><option value="">+ setor</option>${outros(e).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div></div>`).join('')||'<div class="empty" style="padding:14px">Sem etapas. Adicione a primeira abaixo.</div>'}</div>
+    <div class="add-et"><select id="es-${p.id}" aria-label="Setor da nova etapa" style="order:0"><option value="">Qualquer setor</option>${setoresAll().map(st=>`<option value="${esc(st)}">${esc(st)}</option>`).join('')}</select><input id="en-${p.id}" placeholder="Nova etapa (ex: Fechamento)" aria-label="Nome da nova etapa"><input id="ep-${p.id}" type="number" step="0.1" min="0" value="1" aria-label="Pontos da nova etapa"><button class="btn" data-act="addEt" data-id="${p.id}">${ic('plus')}Adicionar</button></div></div></details>`};
+  const grupo=(t,titulo)=>{const L=S.produtos.filter(p=>prodTipo(p)===t);
+    return `<div class="stack" style="gap:12px"><div class="row" style="justify-content:flex-start;gap:10px"><span class="tipo ${t}" style="font-size:12.5px;padding:3px 12px">${titulo}</span><span class="sm faint">${L.length} produto(s)</span></div><div class="grid" style="align-items:start;grid-template-columns:repeat(auto-fill,minmax(min(100%,430px),1fr))">${L.map(card).join('')||`<div class="glass empty">Nenhum produto de ${titulo}.</div>`}</div></div>`};
+  return `<div class="stack">${header('Produtos e etapas','Cada etapa vale pontos. Pontuação = quantidade concluída × pontos da etapa. Clique num produto para abrir as etapas.',`<button class="btn primary" data-act="newProd">${ic('plus')}Novo produto</button>`)}
+  ${grupo('costura','Costura')}${grupo('montagem','Montagem')}</div>`;
+};
 
-V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
+V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da OS = inicial do material + inicial da cor + número do pedido. Dê dois cliques numa ficha para vê-la como a gerência vê.',`<div class="row">${tool('osio')?`<button class="btn" data-act="osModelo">${ic('download')}Planilha modelo</button><button class="btn" data-act="osExport">${ic('download')}Baixar OS</button><button class="btn" data-act="osImport">${ic('upload')}Importar planilha</button>`:''}${tool('osnew')?`<button class="btn primary" data-act="newOs">${ic('plus')}Nova OS</button>`:''}<input type="file" id="osFile" hidden accept=".xlsx,.xls,.csv" data-chg="osFile"></div>`)}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
  ${S.os.map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
-  return `<tr class="os-${tipoOs(o)}"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
+  return `<tr class="os-${tipoOs(o)}" data-fid="${o.id}" style="cursor:pointer"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
   <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'?'<span class="pill ok">Finalizada</span>':''}</div></td>
   <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}" ${tool('osedit')?'':'disabled'}><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
   <td class="r">${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${session.role==='dir'?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="empty">Nenhuma OS cadastrada.</td></tr>'}</tbody></table></div></div></div>`;
@@ -615,9 +648,9 @@ V.acesso=()=>`<div class="stack">${header('Acesso','Nome e senha de cada perfil 
 /* ---------- Gerente ---------- */
 /* funcionários e OS: só os setores que a OS usa */
 function gerSetores(){
-  const sel=S.os.filter(o=>o.status==='Em andamento'&&(ui.gerOs||[]).includes(o.id));
+  const sel=S.os.filter(o=>(o.status==='Em andamento'||ui.tab==='ficha')&&(ui.gerOs||[]).includes(o.id));
   if(!sel.length||sel.some(o=>!o.setores||!o.setores.length))return null;
-  const s=new Set();sel.forEach(o=>o.setores.forEach(x=>s.add(String(x).toLowerCase())));return s;
+  const s=new Set();sel.forEach(o=>{o.setores.forEach(x=>s.add(String(x).toLowerCase()));etapasOs(o).forEach(e=>[e.setor,...(e.extras||[])].forEach(x=>{if(x)s.add(String(x).toLowerCase())}))});return s;
 }
 function gerFuncs(){const at=S.funcs.filter(f=>f.ativo),ss=gerSetores();return ss?at.filter(f=>ss.has(String(f.setor||'').toLowerCase())):at}
 /* etapas com quantidade parcial (Cola, Montagem, Sola) */
@@ -658,12 +691,14 @@ function openQ(btn){
 V.ger=()=>{
   const todos=S.funcs.filter(f=>f.ativo);
   if(!todos.length)return `<div class="stack">${header('Lançamento do dia','')}<div class="glass empty">Peça à Diretoria para cadastrar funcionários.</div></div>`;
-  const emAnd=S.os.filter(o=>o.status==='Em andamento');
+  const ficha=ui.tab==='ficha';
+  const emAnd=ficha?S.os.filter(o=>o.id===ui.fichaId):S.os.filter(o=>o.status==='Em andamento');
+  if(ficha)ui.gerOs=[ui.fichaId];
   if(!ui.gerOs)ui.gerOs=emAnd.map(o=>o.id);
   ui.gerOs=ui.gerOs.filter(id=>emAnd.some(o=>o.id===id));
   const ativos=gerFuncs();
   const t=gerDia(),hoje=today();
-  const chips=`<div><div class="sm muted" style="margin-bottom:8px">OS em andamento</div><div class="chips">${emAnd.map(o=>`<button class="chip ${tipoOs(o)==='montagem'?'montagem':'costura'} ${ui.gerOs.includes(o.id)?'on':''}" data-act="gerOs" data-id="${o.id}">${esc(o.codigo)} <span class="faint sm">${tipoOs(o)==='montagem'?'Montagem':'Costura'}</span></button>`).join('')||'<span class="faint">Nenhuma OS em andamento.</span>'}</div></div>`;
+  const chips=ficha?'':`<div><div class="sm muted" style="margin-bottom:8px">OS em andamento</div><div class="chips">${emAnd.map(o=>`<button class="chip ${tipoOs(o)==='montagem'?'montagem':'costura'} ${ui.gerOs.includes(o.id)?'on':''}" data-act="gerOs" data-id="${o.id}">${esc(o.codigo)} <span class="faint sm">${tipoOs(o)==='montagem'?'Montagem':'Costura'}</span></button>`).join('')||'<span class="faint">Nenhuma OS em andamento.</span>'}</div></div>`;
   if(!ativos.length)return `<div class="stack">${header('Lançamento do dia','')}<div class="glass stack" style="gap:14px">${chips}<div class="empty">Nenhum funcionário ativo nos setores das OS selecionadas.</div></div></div>`;
   if(!by(ativos,ui.gerF))ui.gerF=ativos[0].id;
   const f=by(ativos,ui.gerF),lock=lockMap(f.id,t);
@@ -689,7 +724,7 @@ V.ger=()=>{
       return `<td><button class="ck ${cur.includes(n)?'on':''}" data-act="ck" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" aria-label="${esc(e.nome)} ${n}">OK</button></td>`}).join('')}</tr>`}).join('')||`<tr><td class="empty" colspan="${sizes.length+1}">Nenhuma etapa dos setores desta OS.</td></tr>`}</tbody></table></div></div>`}).join('');
   const pend=avPend('ger');
   const temParc=emAnd.some(o=>ui.gerOs.includes(o.id)&&etapasOs(o).some(isParc));
-  return `<div class="stack">${header('Lançamento do dia','Marque as etapas concluídas de cada numeração. Toque na quantidade para registrar perda')}
+  return `<div class="stack">${ficha?header('Ficha '+((osDe(ui.fichaId)||{}).codigo||''),'Assim a gerência vê esta ficha. Você também pode lançar quantidades por aqui.',`<button class="btn" data-act="fichaVolta">${ic('left')}Voltar às fichas</button>`):header('Lançamento do dia','Marque as etapas concluídas de cada numeração. Toque na quantidade para registrar perda')}
   ${pend?`<button class="glass row between" style="text-align:left;border-color:rgba(240,138,117,.5)" data-act="tab" data-k="avisos"><span>${ic('bell')}<b style="margin-left:8px">${pend} mensagem(ns) nova(s)</b></span><span class="faint sm">Ver</span></button>`:''}
   <div class="glass stack" style="gap:14px"><div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">${ic('cal')}Data do lançamento ${can('retro')?`<input type="date" value="${t}" max="${hoje}" data-chg="gerD" aria-label="Data do lançamento">`:`<b style="color:var(--fg)">${br(t)} (hoje)</b>`}</label>${t!==hoje?`<span class="pill warn">Lançando em ${dow(t)} ${br(t)}</span><button class="btn sm" data-act="gerHoje">Voltar para hoje</button>`:''}</div>
     ${faltouEm(f.id,t)?`<div class="pill bad" style="align-self:flex-start">${esc(f.nome)} está marcado(a) como ausente em ${br(t)}: ${esc(faltouEm(f.id,t).motivo)}</div>`:''}<label class="f" style="max-width:320px">Funcionário<select data-chg="gerF">${ativos.map(x=>`<option value="${x.id}" ${x.id===f.id?'selected':''}>${esc(x.nome)} - ${esc(x.setor)}</option>`).join('')}</select></label>
@@ -841,13 +876,13 @@ function loginHtml(){
 function shellHtml(){
   const dir=session.role==='dir',tabs=dir?TABS_DIR.filter(t=>!['prods','usuarios'].includes(t[0])||eAdm()):TABS_GER_ALL.filter(t=>can(t[0]));
   const nome=meuNome();
-  if(tabs.length&&!tabs.some(t=>t[0]===ui.tab))ui.tab=tabs[0][0];
+  if(tabs.length&&ui.tab!=='ficha'&&!tabs.some(t=>t[0]===ui.tab))ui.tab=tabs[0][0];
   const view=tabs.length?(V[ui.tab]||V.geral)():`<div class="stack">${header('Sem acesso','')}<div class="glass empty">Seu usuário ainda não tem nenhuma tela liberada. Fale com a Diretoria.</div></div>`;
   const permU=unPermitidas();
   const unSel=dir&&(permU.length>1)?`<label class="f" style="gap:4px"><span class="sm muted">Unidade</span><select data-chg="unitSel" aria-label="Unidade">${[...(permU.length>1?[['ALL','Todas as unidades']]:[]),...unidades().filter(x=>permU.includes(x[0]))].map(([u,l])=>`<option value="${esc(u)}" ${unAtual()===u?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:`<div class="sm muted" style="padding:0 4px">Unidade: <b>${esc(dir&&!tokUn(session.perms).length?'Todas':unNome(unAtual()))}</b></div>`;
   const faixa=dir&&unAtual()==='ALL'?`<div class="pill warn" style="align-self:flex-start;margin-bottom:14px">Vendo todas as unidades juntas. Para cadastrar ou lançar, escolha uma unidade no menu.</div>`:'';
   return `<div class="app"><aside class="side">${brandHtml('Produção')}${unSel}
-   <nav class="nav" aria-label="Menu">${tabs.map(([k,l,i])=>`<button class="${ui.tab===k?'on':''}" data-act="tab" data-k="${k}">${ic(i)}${l}${k==='avisos'&&avPend(session.role)?`<span class="pill bad" style="margin-left:auto">${avPend(session.role)}</span>`:''}</button>`).join('')}</nav>
+   <nav class="nav" aria-label="Menu">${tabs.map(([k,l,i])=>`<button class="${ui.tab===k||(ui.tab==='ficha'&&k==='os')?'on':''}" data-act="tab" data-k="${k}">${ic(i)}${l}${k==='avisos'&&avPend(session.role)?`<span class="pill bad" style="margin-left:auto">${avPend(session.role)}</span>`:''}</button>`).join('')}</nav>
    <div class="foot"><div class="who">${dir?'Diretoria':'Gerência'}: <strong>${esc(nome)}</strong></div><button class="btn" data-act="logout">${ic('out')}Sair</button></div></aside>
    <main class="main">${faixa}${view}</main></div>`;
 }
@@ -898,8 +933,8 @@ function openPerda(btn){
 }
 
 /* ---------- código da OS ---------- */
-const setoresAll=()=>{const out=[];const add=x=>{x=String(x||'').trim();if(x&&!out.some(y=>y.toLowerCase()===x.toLowerCase()))out.push(x)};SETORES.forEach(add);((S.cfg&&S.cfg.setores)||[]).forEach(add);(S.funcs||[]).forEach(f=>add(f.setor));return out};
-const etapasOs=o=>{let es=S.etapas.filter(e=>e.pid===o.pid).sort((a,b)=>a.ordem-b.ordem);if(o.tipo)es=es.filter(e=>etapaTipo(e)===o.tipo);const ss=o.setores;if(!ss||!ss.length)return es;return es.filter(e=>!e.setor||ss.includes(e.setor))};
+const setoresAll=()=>{const out=[];const del=((S.cfg&&S.cfg.setoresDel)||[]).map(x=>String(x).toLowerCase());const add=x=>{x=String(x||'').trim();if(x&&!del.includes(x.toLowerCase())&&!out.some(y=>y.toLowerCase()===x.toLowerCase()))out.push(x)};SETORES.forEach(add);((S.cfg&&S.cfg.setores)||[]).forEach(add);(S.funcs||[]).forEach(f=>add(f.setor));return out};
+const etapasOs=o=>{const es=S.etapas.filter(e=>e.pid===o.pid).sort((a,b)=>a.ordem-b.ordem);const ss=o.setores;if(!ss||!ss.length)return es;return es.filter(e=>!e.setor||ss.includes(e.setor)||(e.extras||[]).some(x=>ss.includes(x)))};
 const ini=s=>String(s||'').trim().normalize('NFD').replace(/[̀-ͯ]/g,'').charAt(0).toUpperCase();
 const inicialDe=p=>{const v=String(p&&p.inicial||'').trim().toUpperCase();return v||ini(p&&p.nome)};
 const codeOs=(pid,cor,ped)=>{const p=prodDe(pid);return (p?inicialDe(p):'')+ini(cor)+String(Math.max(0,parseInt(ped)||0)).padStart(3,'0')};
@@ -917,7 +952,7 @@ function formFunc(id){
      if(setor==='__novo__'){
        setor=String(fd.get('novoSetor')||'').trim();if(!setor){toast('Digite o nome do novo setor.');return false}
        const ja=setoresAll().find(x=>x.toLowerCase()===setor.toLowerCase());
-       if(ja)setor=ja;else S.cfg.setores=[...(S.cfg.setores||[]),setor];
+       if(ja)setor=ja;else{S.cfg.setoresDel=(S.cfg.setoresDel||[]).filter(y=>y.toLowerCase()!==setor.toLowerCase());S.cfg.setores=[...(S.cfg.setores||[]),setor]}
      }
      const d={nome,setor,meta:Number(fd.get('meta'))||0,ativo:fd.get('ativo')==='on'};
     if(f)Object.assign(f,d);else S.funcs.push({id:uid(),...d});
@@ -928,6 +963,10 @@ function formProd(id){
   const p=id?prodDe(id):null;
   modal(p?'Editar produto':'Novo produto',`<label class="f">Nome do produto<input name="nome" value="${esc(p?p.nome:'')}" placeholder="Ex: Korino Carnaval" required></label>
    <label class="f">Inicial da OS<input name="inicial" maxlength="3" value="${esc(p?inicialDe(p):'')}" placeholder="Ex: K ou KC" autocomplete="off" style="text-transform:uppercase"></label>
+   <div><div class="sm muted" style="margin-bottom:8px">Tipo do produto</div><div class="escolha">
+    <label class="tp c"><input type="radio" name="tipo" value="costura" data-chg="prodTipoSel" ${(!p||prodTipo(p)==='costura')?'checked':''}><b>Costura</b><small>Etapas de costura. Ao concluir, entra no estoque de corte.</small></label>
+    <label class="tp m"><input type="radio" name="tipo" value="montagem" data-chg="prodTipoSel" ${(p&&prodTipo(p)==='montagem')?'checked':''}><b>Montagem</b><small>Etapas de montagem. Puxa do estoque de corte e entra no estoque de sapatilha.</small></label></div></div>
+   <label class="f" id="corteBox" ${(p&&prodTipo(p)==='montagem')?'':'hidden'}>Puxa do estoque de corte de<select name="corteDe"><option value="">Automático pelo nome (Montagem - Korino puxa de Korino)</option>${S.produtos.filter(x=>prodTipo(x)==='costura'&&(!p||x.id!==p.id)).map(x=>`<option value="${x.id}" ${p&&p.corteDe===x.id?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label>
    <p class="sm faint">Use de 1 a 3 letras ou números. Se deixar vazio, vale a primeira letra do nome. Código da OS = inicial do produto + inicial da cor + nº do pedido (ex: KCR001). Dois produtos não podem ter a mesma inicial.</p>
    ${p?'<p class="sm faint">Ao mudar a inicial, o código das OS desse produto é atualizado.</p>':'<p class="sm faint">Depois de criar, adicione as etapas e os pontos de cada uma.</p>'}`,'Salvar',fd=>{
     const nome=String(fd.get('nome')).trim();if(!nome)return false;
@@ -935,32 +974,34 @@ function formProd(id){
     const efetiva=inicial||ini(nome);
     const outro=S.produtos.find(x=>(!p||x.id!==p.id)&&inicialDe(x)===efetiva);
     if(outro){toast('A inicial '+efetiva+' já é do produto '+outro.nome+'. Escolha outra (ex: duas letras).');return false}
+    const tipo=String(fd.get('tipo'))==='montagem'?'montagem':'costura',corteDe=tipo==='montagem'?(+fd.get('corteDe')||null):null;
     if(p){
-      const old={nome:p.nome,inicial:p.inicial};p.nome=nome;p.inicial=inicial;
+      const old={nome:p.nome,inicial:p.inicial,tipo:p.tipo,corteDe:p.corteDe};p.nome=nome;p.inicial=inicial;p.tipo=tipo;p.corteDe=corteDe;
       const lista=S.os.filter(o=>o.pid===p.id),novos=lista.map(o=>[o,codeOs(p.id,o.cor,o.pedido)]);
       const usados=new Set(S.os.filter(o=>o.pid!==p.id).map(o=>o.codigo));let conflito='';
       novos.forEach(([o,c])=>{if(usados.has(c))conflito=c;usados.add(c)});
-      if(conflito){p.nome=old.nome;p.inicial=old.inicial;toast('Essa inicial geraria o código '+conflito+', que já existe em outra OS. Escolha outra inicial.');return false}
+      if(conflito){p.nome=old.nome;p.inicial=old.inicial;p.tipo=old.tipo;p.corteDe=old.corteDe;toast('Essa inicial geraria o código '+conflito+', que já existe em outra OS. Escolha outra inicial.');return false}
       novos.forEach(([o,c])=>{o.codigo=c});
-    }else S.produtos.push({id:uid(),nome,inicial});
-    commit(p?'Produto atualizado.':'Produto criado.',true);
+    }else{const np={id:uid(),nome,inicial,tipo};if(corteDe)np.corteDe=corteDe;S.produtos.push(np);ui.prodOpen=(ui.prodOpen||new Set()).add(np.id)}
+    commit(p?'Produto atualizado.':'Produto criado. Abra o card para cadastrar as etapas.',true);
   });
 }
 function setoresCard(){
   const custom=(S.cfg.setores||[]);
   const emUso=x=>S.funcs.some(f=>f.setor===x)||S.etapas.some(e=>e.setor===x)||S.os.some(o=>(o.setores||[]).includes(x));
   return `<div class="glass stack" style="gap:12px"><div class="row between"><h3>Setores</h3><span class="sm faint">usados em funcionários, etapas e OS</span></div>
-  <div class="chips">${setoresAll().map(x=>{const c=custom.includes(x);return `<span class="chip">${esc(x)}${c&&!emUso(x)?` <button type="button" class="ib del" style="width:20px;height:20px;vertical-align:middle" aria-label="Remover setor ${esc(x)}" data-act="delSetor" data-s="${esc(x)}">${ic('x')}</button>`:''}</span>`}).join('')}</div>
+  <div class="chips">${setoresAll().map(x=>{const c=custom.includes(x);return `<span class="chip">${esc(x)}${true?` <button type="button" class="ib del" style="width:20px;height:20px;vertical-align:middle" aria-label="Remover setor ${esc(x)}" data-act="delSetor" data-s="${esc(x)}">${ic('x')}</button>`:''}</span>`}).join('')}</div>
   <form class="row" id="setf" style="flex-wrap:nowrap"><input name="setor" maxlength="30" placeholder="Novo setor (ex: Embalagem)" aria-label="Novo setor" style="max-width:280px" required><button class="btn">${ic('plus')}Adicionar setor</button></form>
-  <p class="sm faint">Também dá para criar um setor direto no cadastro do funcionário. Só dá para remover setores criados por você e que não estejam em uso.</p></div>`;
+  <p class="sm faint">Também dá para criar um setor direto no cadastro do funcionário. Clique no X para excluir um setor. Funcionários e etapas que usavam ficam sem setor.</p></div>`;
 }
 function formOs(id){
   const o=id?osDe(id):null;
   if(!S.produtos.length){toast('Cadastre um produto primeiro.');return}
-  const pid0=o?o.pid:S.produtos[0].id;
+  const prCost=S.produtos.filter(x=>o||prodTipo(x)==='costura');if(!prCost.length){toast('Cadastre um produto de Costura em Produtos e etapas.');return}
+  const pid0=o?o.pid:prCost[0].id;
   const nextNum=o?o.pedido:Math.max(0,...S.os.map(x=>+x.pedido||0))+1;
   const ks=o?Object.keys(o.grade).map(Number):[],hi0=ks.length?Math.max(...ks):35,lo0=ks.length?Math.min(...ks):25,DESC=SIZES.slice().reverse();
-  modal(o?'Editar OS '+o.codigo:'Nova OS de Costura',`<div class="fgrid"><label class="f">Produto<select name="pid" data-live ${o?'disabled':''}>${S.produtos.map(p=>`<option value="${p.id}" ${p.id===pid0?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+  modal(o?'Editar OS '+o.codigo:'Nova OS de Costura',`<div class="fgrid"><label class="f">Produto<select name="pid" data-live ${o?'disabled':''}>${prCost.map(p=>`<option value="${p.id}" ${p.id===pid0?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
    <label class="f">Cor<input name="cor" data-live placeholder="Ex: Rosa" value="${esc(o?o.cor:'')}" required></label>
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${nextNum}" required></label></div>
    <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o?o.cliente:'')}" required></label>
@@ -1112,7 +1153,7 @@ const A={
   addEt(d){const pid=+d.id,nome=String($('#en-'+pid).value).trim(),pts=parseFloat($('#ep-'+pid).value);
     if(!nome){toast('Digite o nome da etapa.');return}
     const ordem=Math.max(0,...S.etapas.filter(e=>e.pid===pid).map(e=>e.ordem))+1;
-    S.etapas.push({id:uid(),pid,nome,ordem,pontos:isNaN(pts)?0:pts,setor:($('#es-'+pid)||{}).value||'',tipo:($('#et-'+pid)||{}).value||'costura'});commit('Etapa adicionada.',true)},
+    S.etapas.push({id:uid(),pid,nome,ordem,pontos:isNaN(pts)?0:pts,setor:($('#es-'+pid)||{}).value||''});commit('Etapa adicionada.',true)},
   delEt(d){const e=etapaDe(+d.id);confirmBox(`Remover a etapa <b>${esc(e.nome)}</b>? Os lançamentos dela serão apagados.`,'Remover',()=>{
     S.etapas=S.etapas.filter(x=>x.id!==e.id);S.aps=S.aps.filter(a=>a.eid!==e.id);S.perdas=S.perdas.filter(p=>p.eid!==e.id);commit('Etapa removida.',true)})},
   newOs(){escolheTipoOs()},
@@ -1189,6 +1230,8 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el||!el.dataset.act)return;
   const fn=A[el.dataset.act];if(fn){if(el.tagName==='BUTTON'||el.tagName==='TR'||el.classList.contains('scrim')||true)fn(el.dataset,el)}
 });
+document.addEventListener('dblclick',e=>{if(!isDir())return;const tr=e.target.closest('tr[data-fid]');if(!tr||e.target.closest('button,select,input,a'))return;A.fichaOpen({id:tr.dataset.fid})});
+document.addEventListener('toggle',e=>{const d=e.target;if(!d||!d.dataset||!d.dataset.pid)return;const o=ui.prodOpen||(ui.prodOpen=new Set()),id=+d.dataset.pid;if(d.open)o.add(id);else o.delete(id)},true);
 document.addEventListener('change',e=>{const el=e.target.closest('[data-chg]');if(el&&C[el.dataset.chg])C[el.dataset.chg](el)});
 document.addEventListener('input',e=>{
   if(e.target.closest('#mf .sizes'))updateTot();
@@ -1223,7 +1266,7 @@ document.addEventListener('submit',e=>{
   else if(f.id==='setf'){
     const nome=String(new FormData(f).get('setor')||'').trim();if(!nome)return;
     if(setoresAll().some(x=>x.toLowerCase()===nome.toLowerCase())){toast('Esse setor já existe.');return}
-    S.cfg.setores=[...(S.cfg.setores||[]),nome];commit('Setor "'+nome+'" criado.',true);
+    S.cfg.setoresDel=(S.cfg.setoresDel||[]).filter(y=>y.toLowerCase()!==nome.toLowerCase());S.cfg.setores=[...(S.cfg.setores||[]),nome];commit('Setor "'+nome+'" criado.',true);
   }
   else if(f.id==='cfgf'){
     const d=new FormData(f);['dN','gN'].forEach(k=>{const v=String(d.get(k)).trim();if(v)S.cfg[k]=v});commit('Acesso atualizado.',true)
@@ -1357,16 +1400,19 @@ async function lerPlanilha(file){
   },true);
 }
 /* ======================= Tipos de OS e Estoque (corte e sapatilha) ======================= */
-/* Etapa: tipo 'costura' ou 'montagem'. Etapas antigas sem tipo: as de setor/nome Cola, Montagem e Sola contam como montagem. */
-const etapaTipo=e=>e.tipo||(isParc(e)?'montagem':'costura');
-/* OS: tipo gravado na criação. OS antigas (sem tipo) são deduzidas pelas etapas do produto. 'completa' = passa por costura e montagem na mesma OS. */
-const tipoOs=o=>{
-  if(o.tipo)return o.tipo;
-  const t=new Set(S.etapas.filter(e=>e.pid===o.pid).map(etapaTipo));
-  return t.has('montagem')&&t.has('costura')?'completa':t.has('montagem')?'montagem':'costura';
-};
-const tipoPill=o=>{const t=tipoOs(o);return t==='completa'?'<span class="pill">Completa</span>':`<span class="tipo ${t}">${t==='montagem'?'Montagem':'Costura'}</span>`};
-Object.assign(C,{etTipo(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.tipo=el.value;persist();draw(true);toast('Tipo da etapa atualizado.')}});
+/* Tipo do produto: 'costura' ou 'montagem'. Produtos antigos sem tipo: nome começando com "Montagem" é montagem. */
+const prodTipo=p=>p?(p.tipo||(/^\s*montagem/i.test(p.nome||'')?'montagem':'costura')):'costura';
+const tipoOs=o=>{const p=prodDe(o.pid);return p?prodTipo(p):(o.tipo||'costura')};
+const tipoPill=o=>{const t=tipoOs(o);return `<span class="tipo ${t}">${t==='montagem'?'Montagem':'Costura'}</span>`};
+const tipoProdPill=p=>{const t=prodTipo(p);return `<span class="tipo ${t}">${t==='montagem'?'Montagem':'Costura'}</span>`};
+/* Produto de costura do qual um produto de montagem puxa o corte: o escolhido no cadastro, ou o de mesmo nome sem o prefixo "Montagem". */
+function corteSrc(p){
+  if(!p||prodTipo(p)!=='montagem')return null;
+  if(p.corteDe){const q=prodDe(p.corteDe);if(q&&prodTipo(q)==='costura')return q}
+  const base=String(p.nome||'').replace(/^\s*montagem\s*[-–—:]?\s*/i,'').trim().toLowerCase();
+  return S.produtos.find(q=>prodTipo(q)==='costura'&&String(q.nome).trim().toLowerCase()===base)||null;
+}
+Object.assign(C,{prodTipoSel(el){const b=$('#corteBox');if(b)b.hidden=el.value!=='montagem'}});
 
 const corKey=c=>String(c||'').trim().toLowerCase();
 const ajustes=()=>S.estajustes||(S.estajustes=[]);
@@ -1390,13 +1436,11 @@ function estoqueCalc(uns){
   const add=(est,pid,cor,n,v)=>{const c=cel(est,pid,cor);c.base[n]=(c.base[n]||0)+v};
   S.os.forEach(o=>{
     if(!uns.includes(uOf(o))||!corKey(o.cor))return;
-    cel('corte',o.pid,o.cor);cel('sapatilha',o.pid,o.cor);
-    const t=tipoOs(o);
-    Object.keys(o.grade).map(Number).forEach(n=>{
-      const f=feitoOs(o,n);
-      if(t==='costura')add('corte',o.pid,o.cor,n,f);
-      else{add('sapatilha',o.pid,o.cor,n,f);if(o.tipo==='montagem')add('corte',o.pid,o.cor,n,-(Number(o.grade[n])||0))}
-    });
+    const p=prodDe(o.pid);if(!p)return;
+    const ns=Object.keys(o.grade).map(Number);
+    if(prodTipo(p)==='costura'){cel('corte',o.pid,o.cor);ns.forEach(n=>add('corte',o.pid,o.cor,n,feitoOs(o,n)))}
+    else{cel('sapatilha',o.pid,o.cor);const src=o.tipo==='montagem'?corteSrc(p):null;
+      ns.forEach(n=>{add('sapatilha',o.pid,o.cor,n,feitoOs(o,n));if(src)add('corte',src.id,o.cor,n,-(Number(o.grade[n])||0))})}
   });
   ajustes().filter(a=>uns.includes(a.u)).forEach(a=>{cel(a.est,a.pid,a.cor).adj[a.n]=((cel(a.est,a.pid,a.cor).adj[a.n])||0)+a.delta});
   return R;
@@ -1416,10 +1460,10 @@ function salvaEst(pid,cor,n,est,valor){
 V.estoque=()=>{
   const est=ui.estTipo==='sapatilha'?'sapatilha':'corte';
   const uns=estUns(),R=estoqueCalc(uns),SZ=szDesc();
-  const prods=prodsOrd().map(p=>{const m=R[est][p.id];const linhas=m?[...m.values()]:[];return {p,linhas,total:linhas.reduce((s,c)=>s+totEst(c),0)}});
+  const prods=prodsOrd().filter(p=>prodTipo(p)===(est==='corte'?'costura':'montagem')).map(p=>{const m=R[est][p.id];const linhas=m?[...m.values()]:[];return {p,linhas,total:linhas.reduce((s,c)=>s+totEst(c),0)}});
   const sub=est==='corte'?'Costura finalizada. É daqui que a OS de Montagem puxa as peças.':'Sapatilhas prontas, vindas das OS de Montagem finalizadas.';
   const seg=`<div class="seg" role="tablist" aria-label="Tipo de estoque"><button role="tab" class="${est==='corte'?'on':''}" data-act="estTipo" data-k="corte">Estoque de corte</button><button role="tab" class="${est==='sapatilha'?'on':''}" data-act="estTipo" data-k="sapatilha">Estoque de sapatilha</button></div>`;
-  if(!prods.length)return `<div class="stack">${header('Estoque',sub,seg)}<div class="glass empty">Nenhum produto cadastrado ainda.</div></div>`;
+  if(!prods.length)return `<div class="stack">${header('Estoque',sub,seg)}<div class="glass empty">Nenhum produto de ${est==='corte'?'Costura':'Montagem'} cadastrado. Cadastre em Produtos e etapas.</div></div>`;
   if(!prods.some(x=>x.p.id===ui.estProd))ui.estProd=prods[0].p.id;
   const cur=prods.find(x=>x.p.id===ui.estProd);
   const tabs=`<div class="seg" role="tablist" aria-label="Produtos">${prods.map(x=>`<button role="tab" class="${x.p.id===ui.estProd?'on':''}" aria-selected="${x.p.id===ui.estProd}" data-act="estProd" data-id="${x.p.id}">${esc(x.p.nome)} <span class="num sm" style="opacity:.7">${ni(x.total)}</span></button>`).join('')}</div>`;
@@ -1448,37 +1492,41 @@ function escolheTipoOs(){
 function formOsMontagem(){
   if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para criar a OS.');return}
   const R=estoqueCalc([unAtual()]),SZ=szDesc(),o0=ui.osm||(ui.osm={});
-  const comCorte=p=>{const m=R.corte[p.id];return m?[...m.values()].filter(c=>SZ.some(n=>valEst(c,n)>0)):[]};
-  const prods=prodsOrd().filter(p=>comCorte(p).length);
-  if(!prods.length){toast('Não há estoque de corte disponível. Finalize uma OS de costura ou dê entrada manual no estoque de corte.');return}
-  const pid=prods.some(p=>p.id===o0.pid)?o0.pid:prods[0].id;
-  const cores=comCorte(prodDe(pid));
+  const comCorte=src=>{const m=src&&R.corte[src.id];return m?[...m.values()].filter(c=>SZ.some(n=>valEst(c,n)>0)):[]};
+  const mont=prodsOrd().filter(p=>prodTipo(p)==='montagem');
+  if(!mont.length){toast('Cadastre um produto de Montagem em Produtos e etapas (ex.: Montagem - Korino).');return}
+  const prods=mont.filter(p=>comCorte(corteSrc(p)).length);
+  if(!prods.length){toast('Não há estoque de corte disponível para os produtos de Montagem. Finalize uma OS de costura ou dê entrada manual no estoque de corte.');return}
+  const pid=prods.some(p=>p.id===o0.pid)?o0.pid:prods[0].id,prod=prodDe(pid),src=corteSrc(prod);
+  const cores=comCorte(src);
   const cor=cores.find(c=>corKey(c.nome)===o0.ck)||cores[0];
   const pedido=o0.pedido||Math.max(0,...S.os.map(x=>+x.pedido||0))+1;
-  const temEt=S.etapas.some(e=>e.pid===pid&&etapaTipo(e)==='montagem');
+  const temEt=S.etapas.some(e=>e.pid===pid);
   const sizes=SZ.filter(n=>valEst(cor,n)>0);
-  modal('Nova OS de Montagem',`<div class="fgrid"><label class="f">Produto<select name="pid" data-chg="osmSel">${prods.map(p=>`<option value="${p.id}" ${p.id===pid?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
-   <label class="f">Cor (com estoque de corte)<select name="cor" data-chg="osmSel">${cores.map(c=>`<option value="${esc(c.nome)}" ${c===cor?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></label>
+  modal('Nova OS de Montagem',`<div class="fgrid"><label class="f">Produto de Montagem<select name="pid" data-chg="osmSel">${prods.map(p=>`<option value="${p.id}" ${p.id===pid?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+   <label class="f">Cor (corte de ${esc(src.nome)})<select name="cor" data-chg="osmSel">${cores.map(c=>`<option value="${esc(c.nome)}" ${c===cor?'selected':''}>${esc(c.nome)}</option>`).join('')}</select></label>
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${pedido}" required></label></div>
    <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o0.cliente||'')}" required></label>
-   ${temEt?'':'<div class="pill warn" style="white-space:normal">Esse produto ainda não tem etapas de Montagem. Cadastre em Produtos e etapas para a OS aparecer na gerência.</div>'}
+   ${temEt?'':'<div class="pill warn" style="white-space:normal">Esse produto ainda não tem etapas. Cadastre em Produtos e etapas para a OS aparecer na gerência.</div>'}
+   <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(!o0.setores||!o0.setores.length||o0.setores.includes(st))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div></div>
    <div class="row between"><span class="muted sm">Código da OS</span><b id="codeprev" style="font-size:18px;letter-spacing:.04em">${codeOs(pid,cor.nome,pedido)}</b></div>
    <div><div class="sm muted" style="margin-bottom:8px">Quantidade por numeração. O número pequeno é o que há no estoque de corte.</div><div class="sizes">${sizes.map(n=>`<label>${n} <span class="faint">/${valEst(cor,n)}</span><input type="number" min="0" max="${valEst(cor,n)}" name="s${n}" aria-label="Quantidade do ${n}" value="${(o0.grade&&o0.grade[n])||''}"></label>`).join('')}</div></div>`,
    'Criar OS de Montagem',fd=>{
-    const Rn=estoqueCalc([unAtual()]),m=Rn.corte[pid],c=m&&m.get(corKey(cor.nome)),grade={};
+    const Rn=estoqueCalc([unAtual()]),m=Rn.corte[src.id],c=m&&m.get(corKey(cor.nome)),grade={};
     for(const n of SZ){const v=parseInt(fd.get('s'+n));if(!(v>0))continue;const disp=c?valEst(c,n):0;
       if(v>disp){toast('Numeração '+n+': só há '+disp+' no estoque de corte.');return false}grade[n]=v}
     if(!Object.keys(grade).length){toast('Informe ao menos uma quantidade.');return false}
     const ped=parseInt(fd.get('pedido'))||0,codigo=codeOs(pid,cor.nome,ped);
     if(S.os.some(x=>x.codigo===codigo)){toast('Já existe uma OS com o código '+codigo+'.');return false}
-    S.os.push({id:uid(),codigo,cliente:String(fd.get('cliente')).trim(),cor:cor.nome,pedido:ped,pid,grade,setores:[],status:'Em andamento',tipo:'montagem'});
-    ui.osm=null;commit('OS de Montagem '+codigo+' criada. Quantidades retiradas do estoque de corte.',true);
+    const marc=fd.getAll('setores'),todosS=setoresAll(),setores=(marc.length===0||marc.length>=todosS.length)?[]:marc;
+    S.os.push({id:uid(),codigo,cliente:String(fd.get('cliente')).trim(),cor:cor.nome,pedido:ped,pid,grade,setores,status:'Em andamento',tipo:'montagem'});
+    ui.osm=null;commit('OS de Montagem '+codigo+' criada. Quantidades retiradas do estoque de corte de '+src.nome+'.',true);
   },true);
 }
 Object.assign(C,{osmSel(){
   const f=$('#mf');if(!f)return;const o0=ui.osm||(ui.osm={}),np=+f.pid.value;
   if(np!==o0.pid){o0.pid=np;o0.ck=null}else o0.ck=corKey(f.cor.value);
-  o0.cliente=f.cliente.value;o0.pedido=f.pedido.value;formOsMontagem();
+  o0.cliente=f.cliente.value;o0.pedido=f.pedido.value;o0.setores=[...f.querySelectorAll('input[name=setores]:checked')].map(i=>i.value);formOsMontagem();
 }});
 
 /* ---------- planilha do estoque ---------- */
@@ -1488,7 +1536,7 @@ async function exportarEstoque(k){
   const R=estoqueCalc(estUns()),SZ=szDesc();
   const folha=est=>{
     const head=['Produto','Cor',...SZ,'Total'],rows=[];
-    prodsOrd().forEach(p=>{const m=R[est][p.id];if(!m)return;m.forEach(c=>{if(!totEst(c))return;rows.push([p.nome,c.nome,...SZ.map(n=>valEst(c,n)||''),totEst(c)])})});
+    prodsOrd().filter(p=>prodTipo(p)===(est==='corte'?'costura':'montagem')).forEach(p=>{const m=R[est][p.id];if(!m)return;m.forEach(c=>{if(!totEst(c))return;rows.push([p.nome,c.nome,...SZ.map(n=>valEst(c,n)||''),totEst(c)])})});
     const ws=XLSX.utils.aoa_to_sheet([head,...rows]);ws['!cols']=[{wch:18},{wch:16},...SZ.map(()=>({wch:5})),{wch:8}];return ws;
   };
   const wb=XLSX.utils.book_new();
@@ -1499,6 +1547,8 @@ async function exportarEstoque(k){
 }
 Object.assign(A,{
   estProd(d){ui.estProd=+d.id;draw(true)},
+  fichaOpen(d){ui.fichaId=+d.id;ui.gerOs=[+d.id];ui.tab='ficha';draw();window.scrollTo(0,0)},
+  fichaVolta(){ui.tab='os';ui.gerOs=null;draw();window.scrollTo(0,0)},
   estTipo(d){ui.estTipo=d.k;ui.estFab=false;draw(true)},
   estFab(){ui.estFab=!ui.estFab;draw(true)},
   osNova(d){closeModal();if(d.k==='montagem'){ui.osm=null;formOsMontagem()}else formOs()},
@@ -1526,13 +1576,22 @@ Object.assign(A,{
 
 Object.assign(A,{osModelo(){baixarModelo()},osExport(){osExportForm()},osChk(d){document.querySelectorAll('#mf input[name=o]').forEach(i=>i.checked=d.v==='1')},osImport(){const i=$('#osFile');if(i)i.click()}});
 Object.assign(A,{
-  delSetor(d){S.cfg.setores=(S.cfg.setores||[]).filter(x=>x!==d.s);commit('Setor removido.',true)},
+  etRmExtra(d){const e=etapaDe(+d.id);if(!e)return;e.extras=(e.extras||[]).filter(x=>x!==d.s);commit('Setor tirado da etapa.',true)},
+  delSetor(d){const x=d.s,nF=S.funcs.filter(f=>f.setor===x).length,nE=S.etapas.filter(e=>e.setor===x||(e.extras||[]).includes(x)).length;
+    confirmBox('Excluir o setor <b>'+esc(x)+'</b>?'+((nF||nE)?' '+nF+' funcionário(s) e '+nE+' etapa(s) que usam esse setor ficam sem setor (Qualquer setor).':''),'Excluir',()=>{
+      S.cfg.setores=(S.cfg.setores||[]).filter(y=>y!==x);
+      S.cfg.setoresDel=[...(S.cfg.setoresDel||[]).filter(y=>y!==x),x];
+      S.funcs.forEach(f=>{if(f.setor===x)f.setor=''});
+      S.etapas.forEach(e=>{if(e.setor===x)e.setor='';if(e.extras)e.extras=e.extras.filter(y=>y!==x)});
+      S.os.forEach(o=>{if(o.setores&&o.setores.includes(x))o.setores=o.setores.filter(y=>y!==x)});
+      commit('Setor "'+x+'" excluído.',true)})},
   finOs(d){const o=osDe(+d.id);if(!o)return;const p=osProgress(o);
     confirmBox('Finalizar a OS <b>'+esc(o.codigo)+'</b>?'+(p<100?' Ela está com '+ni(p)+'% das etapas lançadas e será marcada como concluída mesmo assim.':''),'Finalizar',()=>{o.status='Concluída';commit('OS '+o.codigo+' finalizada.',true)})}
 });
 Object.assign(C,{
   setorSel(el){const b=$('#novoSetorBox');if(!b)return;b.hidden=el.value!=='__novo__';if(!b.hidden){const i=b.querySelector('input');if(i)i.focus()}},
-  etSetor(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.setor=el.value;persist();toast('Setor da etapa atualizado.')}
+  etSetor(el){const e=etapaDe(+el.dataset.id);if(!e)return;e.setor=el.value;if(e.extras)e.extras=e.extras.filter(x=>x!==el.value);persist();toast('Setor da etapa atualizado.')},
+  etAddExtra(el){const e=etapaDe(+el.dataset.id);if(!e||!el.value)return;e.extras=[...(e.extras||[]),el.value];persist();draw(true);toast('Setor adicionado à etapa.')}
 });
 Object.assign(C,{osFile(el){const f=el.files&&el.files[0];el.value='';if(f)lerPlanilha(f)}});
 

@@ -896,7 +896,9 @@ const TOOLS=[['osnew','Criar nova OS'],['osedit','Editar e finalizar OS'],['osio
 const hiddenAll=()=>((S.cfg&&S.cfg.gerOcultas)||['osdel']);
 const isDir=()=>!!session&&session.role==='dir';
 const can=k=>!!session&&(session.role==='dir'||((session.perms||[]).includes(k)&&!hiddenAll().includes(k)));
-const tool=k=>isDir()||(!!session&&!hiddenAll().includes(k)&&!(session.perms||[]).includes('no:'+k));
+const ro=()=>!!session&&session.role==='ger'&&(session.perms||[]).includes('ro');
+const RO_MSG='Seu acesso é somente para visualizar.';
+const tool=k=>isDir()||(!!session&&!(ro()&&k!=='osio')&&!hiddenAll().includes(k)&&!(session.perms||[]).includes('no:'+k));
 const tokUn=p=>(Array.isArray(p)?p:[]).filter(x=>/^un:/.test(String(x))).map(x=>String(x).slice(3));
 const eMaster=()=>isDir()&&!tokUn(session.perms).length;
 const eAdm=()=>eMaster()||(isDir()&&(session.perms||[]).includes('adm'));
@@ -1285,11 +1287,15 @@ document.addEventListener('click',e=>{
   const pop=e.target.closest('#pf,#qf,#ef');
   if(!pop&&!e.target.closest('[data-act=perda],[data-act=ckq],[data-act=estCell]'))closePop();
   const el=e.target.closest('[data-act]');if(!el||!el.dataset.act)return;
+  const RO_OK=['tab','logout','close','popClose','backRole','atalho','delAtalho','limpaAtalhos','dOpen','per','dsAll','dsExp','dsPick','dsSetor','relExp','baixaPdf','trfPdf','estXls','fichaVolta','gerOs','gerHoje','cmpTog','prodCmp','rankSel','estProd','estTipo','osExport','osChk','osModelo'];
+  if(ro()&&!RO_OK.includes(el.dataset.act)){toast(RO_MSG);return}
   const fn=A[el.dataset.act];if(fn){if(el.tagName==='BUTTON'||el.tagName==='TR'||el.classList.contains('scrim')||true)fn(el.dataset,el)}
 });
 document.addEventListener('dblclick',e=>{if(!isDir())return;const tr=e.target.closest('tr[data-fid]');if(!tr||e.target.closest('button,select,input,a'))return;A.fichaOpen({id:tr.dataset.fid})});
 document.addEventListener('toggle',e=>{const d=e.target;if(!d||!d.dataset||!d.dataset.pid)return;const o=ui.prodOpen||(ui.prodOpen=new Set()),id=+d.dataset.pid;if(d.open)o.add(id);else o.delete(id)},true);
-document.addEventListener('change',e=>{const el=e.target.closest('[data-chg]');if(el&&C[el.dataset.chg])C[el.dataset.chg](el)});
+document.addEventListener('change',e=>{const el=e.target.closest('[data-chg]');if(!el)return;
+  if(ro()&&!['perDate','relK','prodOs','prodOs2','cmpA','cmpB','gerF','gerD','osRange'].includes(el.dataset.chg)){toast(RO_MSG);draw(true);return}
+  if(C[el.dataset.chg])C[el.dataset.chg](el)});
 document.addEventListener('input',e=>{
   if(e.target.closest('#mf .sizes'))updateTot();
   if(e.target.closest('#mf')&&e.target.hasAttribute('data-live')){
@@ -1298,6 +1304,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('submit',e=>{
   const f=e.target;e.preventDefault();
+  if(ro()&&f.id!=='lgf'&&f.id!=='mf'){toast(RO_MSG);return}
   if(f.id==='mf'){if(modalOk){const r=modalOk(new FormData(f));if(r!==false)closeModal()}}
   else if(f.id==='lgf'){const d=new FormData(f);dbLogin(String(d.get('email')||'').trim(),String(d.get('pw')||''),d.get('save')==='on')}
   else if(f.id==='unf'){
@@ -1706,7 +1713,7 @@ async function loadAll(first){
 
 /* gravação: compara com o último estado salvo e envia só o que mudou */
 function syncStatusOs(){let ch=false;S.os.forEach(o=>{if(o.status!=='Concluída'&&!o.autoFin&&osProgress(o)>=99.999){o.status='Concluída';o.autoFin=true;ch=true}});return ch}
-function persist(){syncStatusOs();lastPersist=Date.now();clearTimeout(flushT);flushT=setTimeout(flush,350)}
+function persist(){if(ro())return;syncStatusOs();lastPersist=Date.now();clearTimeout(flushT);flushT=setTimeout(flush,350)}
 async function flush(){
   if(!sb||!session)return;
   if(flushing){again=true;return}
@@ -1714,7 +1721,7 @@ async function flush(){
   try{
     S.dash.forEach((w,i)=>{w.pos=i});
     const up=[],del=[];
-    const WR=session.role==='dir'?ALL:['os','aps','perdas','faltas','avisos'];
+    const WR=ro()?[]:session.role==='dir'?ALL:['os','aps','perdas','faltas','avisos'];
     for(const c of WR){
       const cur=new Map(rowsOf(c)),old=snap[c]||new Map();
       cur.forEach((o,k)=>{
@@ -2102,9 +2109,9 @@ V.usuarios=()=>{
   else body=`<div class="glass flush"><div class="tw"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Unidade(s)</th><th>Acessos</th><th class="r">Ações</th></tr></thead><tbody>
    ${visUsers().map(u=>{const dir=u.papel==='dir',eu=u.email===session.email,pm=Array.isArray(u.permissoes)?u.permissoes:[],t=tokUn(pm),oc=pm.filter(k=>/^no:/.test(String(k))).map(k=>String(k).slice(3));
      const unTxt=t.length?t.map(unNome).join(', '):(dir?'Todas':unNome('PIR'));
-     const ac=dir?(t.length?'<span class="muted sm">Diretoria limitada às unidades'+(pm.includes('adm')?' · gerencia usuários':'')+'</span>':'<span class="muted sm">Acesso total</span>'):(pm.filter(k=>!/^(un|no):/.test(String(k))).map(k=>`<span class="pill" style="margin:2px 4px 2px 0">${esc(lbl[k]||k)}</span>`).join('')||'<span class="faint sm">Nada liberado</span>')+(oc.length?`<div class="faint sm">Ocultas: ${oc.map(k=>esc(lbl[k]||k)).join(', ')}</div>`:'');
+     const ac=dir?(t.length?'<span class="muted sm">Diretoria limitada às unidades'+(pm.includes('adm')?' · gerencia usuários':'')+'</span>':'<span class="muted sm">Acesso total</span>'):(pm.filter(k=>!/^(un:|no:|ro$)/.test(String(k))).map(k=>`<span class="pill" style="margin:2px 4px 2px 0">${esc(lbl[k]||k)}</span>`).join('')||'<span class="faint sm">Nada liberado</span>')+(oc.length?`<div class="faint sm">Ocultas: ${oc.map(k=>esc(lbl[k]||k)).join(', ')}</div>`:'');
      const podeEd=!eu&&(!dir||eMaster()),podeDel=!eu&&(!dir||eMaster());
-     return `<tr><td class="name"><span class="av">${esc((u.nome||'?')[0])}</span>${esc(u.nome)}${eu?' <span class="faint sm">(você)</span>':''}</td><td class="muted">${esc(u.email)}</td><td>${dir?'<span class="pill ok">Diretoria</span>':'<span class="pill">Gerência</span>'}</td><td class="muted">${esc(unTxt)}</td><td>${ac}</td>
+     return `<tr><td class="name"><span class="av">${esc((u.nome||'?')[0])}</span>${esc(u.nome)}${eu?' <span class="faint sm">(você)</span>':''}</td><td class="muted">${esc(u.email)}</td><td>${dir?'<span class="pill ok">Diretoria</span>':(pm.includes('ro')?'<span class="pill">Gerência · só visualiza</span>':'<span class="pill">Gerência</span>')}</td><td class="muted">${esc(unTxt)}</td><td>${ac}</td>
      <td class="r">${podeEd?`<button class="ib" aria-label="Editar ${esc(u.nome)}" title="Editar acessos" data-act="editUser" data-u="${esc(u.user_id)}">${ic('pencil')}</button>`:''}<button class="ib" aria-label="Trocar senha de ${esc(u.nome)}" title="Trocar senha" data-act="pwUser" data-u="${esc(u.user_id)}">${ic('key')}</button>${podeDel?`<button class="ib del" aria-label="Remover ${esc(u.nome)}" title="Remover usuário" data-act="delUser" data-u="${esc(u.user_id)}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="6" class="empty">Nenhum usuário.</td></tr>'}</tbody></table></div></div>`;
   return `<div class="stack">${header('Controle de acesso','Crie diretorias e gerências, escolha a unidade e o que cada pessoa pode ver e fazer',`<button class="btn primary" data-act="newUser">${ic('plus')}Novo usuário</button>`)}${body}
   ${eMaster()?unidadesCard():''}${ferramentasCard()}
@@ -2122,6 +2129,7 @@ function formUser(u){
    ${u?'':'<label class="f">Senha inicial (mínimo 6 caracteres)<input type="text" name="senha" minlength="6" autocomplete="off" required></label>'}
    ${u?'':`<label class="f">Perfil<select name="papel" data-chg="papelSel"><option value="ger">Gerência</option>${eMaster()?'<option value="dir">Diretoria</option>':''}</select></label>`}
    <div id="blkGer" ${isDirU?'hidden':''} class="stack" style="gap:14px">
+    <label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" name="ro" ${sel.includes('ro')?'checked':''} style="width:auto;margin-top:3px"><span><b>Somente visualizar</b><br><span class="sm muted">Vê as telas marcadas abaixo, mas não lança, edita, cria nem apaga nada. Ignora \"Lançamento do dia\", \"Lançar em dias anteriores\" e as ferramentas.</span></span></label>
     <label class="f">Unidade<select name="unid">${opts.map(([k,l])=>`<option value="${esc(k)}" ${k===unSel?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
     <div><div class="sm muted" style="margin-bottom:8px">Telas que este usuário pode abrir</div><div class="stack" style="gap:8px">${PERMS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="perm" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>
     <div><div class="sm muted" style="margin-bottom:8px">Ferramentas (desmarque para ocultar)</div><div class="stack" style="gap:8px">${TOOLS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="tool" value="${k}" ${oc.includes(k)?'':'checked'} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>
@@ -2138,8 +2146,11 @@ function formUser(u){
     let perms=[];
     if(papel==='ger'){
       const marc=new Set(fd.getAll('tool').map(String));
+      const soVer=fd.get('ro')==='on';
       perms=fd.getAll('perm').map(String);
-      TOOLS.forEach(([k])=>{if(!marc.has(k))perms.push('no:'+k)});
+      if(soVer)perms=perms.filter(k=>k!=='ger'&&k!=='retro');
+      TOOLS.forEach(([k])=>{if(soVer||!marc.has(k))perms.push('no:'+k)});
+      if(soVer)perms.push('ro');
       perms.push('un:'+String(fd.get('unid')||opts[0][0]));
     }else{
       const d=fd.getAll('duns').map(String);d.forEach(x=>perms.push('un:'+x));

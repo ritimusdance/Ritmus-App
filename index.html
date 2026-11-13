@@ -249,6 +249,7 @@ html,body{overflow-x:clip}
 .ck{width:34px;height:30px;margin:5px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:transparent;font-size:11px;font-weight:600;transition:background .15s,border-color .15s}
 .ck:hover{border-color:var(--line-2)}
 .ck.on{background:rgba(74,222,154,.18);border-color:rgba(74,222,154,.55);color:var(--ok)}
+.ck:disabled{cursor:default;opacity:1}
 .ck.lock{background:rgba(255,255,255,.07);border-color:var(--line);color:var(--fg-3);cursor:not-allowed;font-size:10.5px;letter-spacing:.02em}
 .ck.lock:hover{border-color:var(--line)}
 .ck.pq{font-size:11px;font-variant-numeric:tabular-nums;min-width:34px;width:auto;padding:0 5px}
@@ -774,15 +775,15 @@ V.ger=()=>{
           const cls=mine>0?(mine>=rem?'on':'half'):(oth>0?'rest':''),txt=mine>0?mine:(oth>0?'-'+rem:'');
           const por=porQuem(o,e.id,n,f.id,t);
           const msg=`Total ${Q}${por?' · feito por '+por:''} · falta ${rem}${mine?` · ${f.nome} marcou ${mine}${mine>=rem?' (completa)':''}`:''}`;
-          return `<td><button class="ck pq ${cls}" data-act="ckq" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" data-rem="${rem}" data-oth="${oth}" data-cur="${mine}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">${txt}</button></td>`}).join('')}</tr>`}
+          return `<td><button class="ck pq ${cls}" ${ro()?'disabled':''} data-act="ckq" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" data-rem="${rem}" data-oth="${oth}" data-cur="${mine}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">${txt}</button></td>`}).join('')}</tr>`}
       const cur=curSizes(f.id,o.id,e.id);return `<tr><th class="st">${esc(e.nome)}</th>${sizes.map(n=>{
       const L=lock[o.id+'|'+e.id+'|'+n];
       if(L){const msg=L.mine?`Você já lançou este item em ${br(L.d)}. Mude a data para corrigir.`:`${L.nome} já fez este item${L.draft?' (marcado, ainda não salvo)':' em '+br(L.d)}.`;
         return `<td><button type="button" class="ck lock" data-act="ck" data-msg="${esc(msg)}" title="${esc(msg)}" aria-label="${esc(e.nome)} ${n}: ${esc(msg)}">${esc(L.nome.trim().slice(0,2).toUpperCase())}</button></td>`}
-      return `<td><button class="ck ${cur.includes(n)?'on':''}" data-act="ck" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" aria-label="${esc(e.nome)} ${n}">OK</button></td>`}).join('')}</tr>`}).join('')||`<tr><td class="empty" colspan="${sizes.length+1}">Nenhuma etapa dos setores desta OS.</td></tr>`}</tbody></table></div></div>`}).join('');
+      return `<td><button class="ck ${cur.includes(n)?'on':''}" ${ro()?'disabled':''} data-act="ck" data-f="${f.id}" data-o="${o.id}" data-e="${e.id}" data-n="${n}" aria-label="${esc(e.nome)} ${n}">OK</button></td>`}).join('')}</tr>`}).join('')||`<tr><td class="empty" colspan="${sizes.length+1}">Nenhuma etapa dos setores desta OS.</td></tr>`}</tbody></table></div></div>`}).join('');
   const pend=avPend('ger');
   const temParc=emAnd.some(o=>ui.gerOs.includes(o.id)&&etapasOs(o).some(isParc));
-  return `<div class="stack">${ficha?header('Ficha '+((osDe(ui.fichaId)||{}).codigo||''),'Assim a gerência vê esta ficha. Você também pode lançar quantidades por aqui.',`<button class="btn" data-act="fichaVolta">${ic('left')}Voltar às fichas</button>`):header('Lançamento do dia','Marque as etapas concluídas de cada numeração. Toque na quantidade para registrar perda')}
+  return `<div class="stack">${ficha?header('Ficha '+((osDe(ui.fichaId)||{}).codigo||''),(ro()?'Assim a gerência vê esta ficha. Seu acesso é somente para visualizar: nada aqui pode ser alterado.':'Assim a gerência vê esta ficha. Você também pode lançar quantidades por aqui.'),`<button class="btn" data-act="fichaVolta">${ic('left')}Voltar às fichas</button>`):header('Lançamento do dia','Marque as etapas concluídas de cada numeração. Toque na quantidade para registrar perda')}
   ${pend?`<button class="glass row between" style="text-align:left;border-color:rgba(240,138,117,.5)" data-act="tab" data-k="avisos"><span>${ic('bell')}<b style="margin-left:8px">${pend} mensagem(ns) nova(s)</b></span><span class="faint sm">Ver</span></button>`:''}
   <div class="glass stack" style="gap:14px"><div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">${ic('cal')}Data do lançamento ${can('retro')?`<input type="date" value="${t}" max="${hoje}" data-chg="gerD" aria-label="Data do lançamento">`:`<b style="color:var(--fg)">${br(t)} (hoje)</b>`}</label>${t!==hoje?`<span class="pill warn">Lançando em ${dow(t)} ${br(t)}</span><button class="btn sm" data-act="gerHoje">Voltar para hoje</button>`:''}</div>
     ${faltouEm(f.id,t)?`<div class="pill bad" style="align-self:flex-start">${esc(f.nome)} está marcado(a) como ausente em ${br(t)}: ${esc(faltouEm(f.id,t).motivo)}</div>`:''}<label class="f" style="max-width:320px">Funcionário<select data-chg="gerF">${ativos.map(x=>`<option value="${x.id}" ${x.id===f.id?'selected':''}>${esc(x.nome)} - ${esc(x.setor)}</option>`).join('')}</select></label>
@@ -1287,11 +1288,11 @@ document.addEventListener('click',e=>{
   const pop=e.target.closest('#pf,#qf,#ef');
   if(!pop&&!e.target.closest('[data-act=perda],[data-act=ckq],[data-act=estCell]'))closePop();
   const el=e.target.closest('[data-act]');if(!el||!el.dataset.act)return;
-  const RO_OK=['tab','logout','close','popClose','backRole','atalho','delAtalho','limpaAtalhos','dOpen','per','dsAll','dsExp','dsPick','dsSetor','relExp','baixaPdf','trfPdf','estXls','fichaVolta','gerOs','gerHoje','cmpTog','prodCmp','rankSel','estProd','estTipo','osExport','osChk','osModelo'];
-  if(ro()&&!RO_OK.includes(el.dataset.act)){toast(RO_MSG);return}
+  const RO_OK=['tab','logout','close','popClose','backRole','atalho','delAtalho','limpaAtalhos','dOpen','per','dsAll','dsExp','dsPick','dsSetor','relExp','baixaPdf','trfPdf','estXls','fichaVolta','gerOs','gerHoje','cmpTog','prodCmp','rankSel','estProd','estTipo','osExport','osChk','osModelo','osTipo','osFin','osAnd','fichaOpen','noop'];
+  if(ro()&&!RO_OK.includes(el.dataset.act)&&!(el.dataset.act==='ck'&&el.dataset.msg)){toast(RO_MSG);return}
   const fn=A[el.dataset.act];if(fn){if(el.tagName==='BUTTON'||el.tagName==='TR'||el.classList.contains('scrim')||true)fn(el.dataset,el)}
 });
-document.addEventListener('dblclick',e=>{if(!isDir())return;const tr=e.target.closest('tr[data-fid]');if(!tr||e.target.closest('button,select,input,a'))return;A.fichaOpen({id:tr.dataset.fid})});
+document.addEventListener('dblclick',e=>{if(!isDir()&&!ro())return;const tr=e.target.closest('tr[data-fid]');if(!tr||e.target.closest('button,select,input,a'))return;A.fichaOpen({id:tr.dataset.fid})});
 document.addEventListener('toggle',e=>{const d=e.target;if(!d||!d.dataset||!d.dataset.pid)return;const o=ui.prodOpen||(ui.prodOpen=new Set()),id=+d.dataset.pid;if(d.open)o.add(id);else o.delete(id)},true);
 document.addEventListener('change',e=>{const el=e.target.closest('[data-chg]');if(!el)return;
   if(ro()&&!['perDate','relK','prodOs','prodOs2','cmpA','cmpB','gerF','gerD','osRange'].includes(el.dataset.chg)){toast(RO_MSG);draw(true);return}
@@ -2573,17 +2574,17 @@ Object.assign(A,{
 
 /* ======================= Filtro das OS ======================= */
 function osFiltradas(){
-  const t=ui.osTipo||'todas',f=!!ui.osFin;
-  return S.os.filter(o=>(t==='todas'||tipoOs(o)===t)&&(!f||o.status==='Concluída'));
+  const t=ui.osTipo||'todas',sit=ui.osSit||'';
+  return S.os.filter(o=>(t==='todas'||tipoOs(o)===t)&&(!sit||(sit==='fin'?o.status==='Concluída':o.status!=='Concluída')));
 }
 function osFiltroBar(){
-  const t=ui.osTipo||'todas',f=!!ui.osFin;
+  const t=ui.osTipo||'todas',sit=ui.osSit||'';
   const n=fn=>S.os.filter(fn).length;
   const b=(k,l,c)=>`<button class="${t===k?'on':''}" data-act="osTipo" data-k="${k}">${l} <span class="num sm" style="opacity:.65">${c}</span></button>`;
   return `<div class="row" style="gap:10px"><div class="seg" role="group" aria-label="Filtrar por tipo">${b('todas','Todas',S.os.length)}${b('costura','Costura',n(o=>tipoOs(o)==='costura'))}${b('montagem','Montagem',n(o=>tipoOs(o)==='montagem'))}</div>
-  <div class="seg" role="group" aria-label="Filtrar por situação"><button class="${f?'on':''}" aria-pressed="${f}" data-act="osFin">Finalizadas <span class="num sm" style="opacity:.65">${n(o=>o.status==='Concluída')}</span></button></div></div>`;
+  <div class="seg" role="group" aria-label="Filtrar por situação"><button class="${sit==='and'?'on':''}" aria-pressed="${sit==='and'}" data-act="osAnd">Em andamento <span class="num sm" style="opacity:.65">${n(o=>o.status!=='Concluída')}</span></button><button class="${sit==='fin'?'on':''}" aria-pressed="${sit==='fin'}" data-act="osFin">Finalizadas <span class="num sm" style="opacity:.65">${n(o=>o.status==='Concluída')}</span></button></div></div>`;
 }
-Object.assign(A,{osTipo(d){ui.osTipo=d.k;draw(true)},osFin(){ui.osFin=!ui.osFin;draw(true)}});
+Object.assign(A,{osTipo(d){ui.osTipo=d.k;draw(true)},osFin(){ui.osSit=ui.osSit==='fin'?'':'fin';draw(true)},osAnd(){ui.osSit=ui.osSit==='and'?'':'and';draw(true)}});
 
 /* partida */
 (async function boot(){

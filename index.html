@@ -996,7 +996,7 @@ function openPerda(btn){
 /* ---------- código da OS ---------- */
 const setoresAll=()=>{const out=[];const del=((S.cfg&&S.cfg.setoresDel)||[]).map(x=>String(x).toLowerCase());const add=x=>{x=String(x||'').trim();if(x&&!del.includes(x.toLowerCase())&&!out.some(y=>y.toLowerCase()===x.toLowerCase()))out.push(x)};SETORES.forEach(add);((S.cfg&&S.cfg.setores)||[]).forEach(add);(S.funcs||[]).forEach(f=>add(f.setor));return out};
 const etapasOs=o=>{const es=S.etapas.filter(e=>e.pid===o.pid).sort((a,b)=>a.ordem-b.ordem);const ss=o.setores;if(!ss||!ss.length)return es;return es.filter(e=>!e.setor||ss.includes(e.setor)||(e.extras||[]).some(x=>ss.includes(x)))};
-const setoresDoProduto=pid=>{const s=new Set();S.etapas.filter(e=>e.pid===pid).forEach(e=>{if(e.setor)s.add(e.setor);(e.extras||[]).forEach(x=>{if(x)s.add(x)})});return setoresAll().filter(st=>s.has(st))};
+const setoresDoProduto=pid=>{const all=setoresAll(),low=all.map(x=>x.toLowerCase());const s=new Set();S.etapas.filter(e=>e.pid===pid).forEach(e=>{if(e.setor)s.add(e.setor);(e.extras||[]).forEach(x=>{if(x)s.add(x)});const i=low.indexOf(String(e.nome||'').trim().toLowerCase());if(i>=0)s.add(all[i])});return all.filter(st=>s.has(st))};
 const ini=s=>String(s||'').trim().normalize('NFD').replace(/[̀-ͯ]/g,'').charAt(0).toUpperCase();
 const inicialDe=p=>{const v=String(p&&p.inicial||'').trim().toUpperCase();return v||ini(p&&p.nome)};
 const codeOs=(pid,cor,ped)=>{const p=prodDe(pid);return (p?inicialDe(p):'')+ini(cor)+String(Math.max(0,parseInt(ped)||0)).padStart(3,'0')};

@@ -996,6 +996,7 @@ function openPerda(btn){
 /* ---------- código da OS ---------- */
 const setoresAll=()=>{const out=[];const del=((S.cfg&&S.cfg.setoresDel)||[]).map(x=>String(x).toLowerCase());const add=x=>{x=String(x||'').trim();if(x&&!del.includes(x.toLowerCase())&&!out.some(y=>y.toLowerCase()===x.toLowerCase()))out.push(x)};SETORES.forEach(add);((S.cfg&&S.cfg.setores)||[]).forEach(add);(S.funcs||[]).forEach(f=>add(f.setor));return out};
 const etapasOs=o=>{const es=S.etapas.filter(e=>e.pid===o.pid).sort((a,b)=>a.ordem-b.ordem);const ss=o.setores;if(!ss||!ss.length)return es;return es.filter(e=>!e.setor||ss.includes(e.setor)||(e.extras||[]).some(x=>ss.includes(x)))};
+const setoresDoProduto=pid=>{const s=new Set();S.etapas.filter(e=>e.pid===pid).forEach(e=>{if(e.setor)s.add(e.setor);(e.extras||[]).forEach(x=>{if(x)s.add(x)})});return setoresAll().filter(st=>s.has(st))};
 const ini=s=>String(s||'').trim().normalize('NFD').replace(/[̀-ͯ]/g,'').charAt(0).toUpperCase();
 const inicialDe=p=>{const v=String(p&&p.inicial||'').trim().toUpperCase();return v||ini(p&&p.nome)};
 const codeOs=(pid,cor,ped)=>{const p=prodDe(pid);return (p?inicialDe(p):'')+ini(cor)+String(Math.max(0,parseInt(ped)||0)).padStart(3,'0')};
@@ -1058,15 +1059,17 @@ function formOs(id){
   const o=id?osDe(id):null;
   if(!S.produtos.length){toast('Cadastre um produto primeiro.');return}
   const prCost=S.produtos.filter(x=>o||prodTipo(x)==='costura');if(!prCost.length){toast('Cadastre um produto de Costura em Produtos e etapas.');return}
-  const pid0=o?o.pid:prCost[0].id;
-  const nextNum=o?o.pedido:Math.max(0,...S.os.map(x=>+x.pedido||0))+1;
+  const o0=o?null:(ui.osNovo||(ui.osNovo={}));
+  const pid0=o?o.pid:(prCost.some(p=>p.id===o0.pid)?o0.pid:prCost[0].id);
+  const nextNum=o?o.pedido:(o0.pedido||Math.max(0,...S.os.map(x=>+x.pedido||0))+1);
   const ks=o?Object.keys(o.grade).map(Number):[],hi0=ks.length?Math.max(...ks):35,lo0=ks.length?Math.min(...ks):25,DESC=SIZES.slice().reverse();
-  modal(o?'Editar OS '+o.codigo:'Nova OS de Costura',`<div class="fgrid"><label class="f">Produto<select name="pid" data-live ${o?'disabled':''}>${prCost.map(p=>`<option value="${p.id}" ${p.id===pid0?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
-   <label class="f">Cor<input name="cor" data-live placeholder="Ex: Rosa" value="${esc(o?o.cor:'')}" required></label>
+  const defSet=o?null:setoresDoProduto(pid0);
+  modal(o?'Editar OS '+o.codigo:'Nova OS de Costura',`<div class="fgrid"><label class="f">Produto<select name="pid" data-live ${o?'disabled':'data-chg="osPidSel"'}>${prCost.map(p=>`<option value="${p.id}" ${p.id===pid0?'selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+   <label class="f">Cor<input name="cor" data-live placeholder="Ex: Rosa" value="${esc(o?o.cor:(o0.cor||''))}" required></label>
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${nextNum}" required></label></div>
-   <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o?o.cliente:'')}" required></label>
+   <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o?o.cliente:(o0.cliente||''))}" required></label>
    ${o?'':`<label class="f">Unidade da OS<select name="un">${unidades().map(([u,l])=>`<option value="${esc(u)}" ${u===unAtual()?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`}
-    <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(!o||!o.setores||!o.setores.length||o.setores.includes(st))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div><p class="sm faint" style="margin-top:6px">Só as etapas desses setores contam no progresso e aparecem para o gerente. Etapas sem setor (definido em Produtos e etapas) aparecem sempre. Você pode finalizar a OS a qualquer momento.</p></div>
+    <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(o?(!o.setores||!o.setores.length||o.setores.includes(st)):(!defSet.length||defSet.includes(st)))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div><p class="sm faint" style="margin-top:6px">Já vêm marcados os setores usados nas etapas deste produto. Só as etapas desses setores contam no progresso e aparecem para o gerente. Etapas sem setor (definido em Produtos e etapas) aparecem sempre. Você pode finalizar a OS a qualquer momento.</p></div>
    <div class="row between"><span class="muted sm">Código da OS</span><b id="codeprev" style="font-size:18px;letter-spacing:.04em">${codeOs(pid0,o?o.cor:'',nextNum)}</b></div>
    <div class="row between"><span class="muted sm">Total da grade</span><b id="gradeTot"></b></div>
    <p class="sm faint">Para preencher várias numerações de uma vez, use o botão flutuante <b>Acesso rápido</b>.</p>
@@ -1575,7 +1578,7 @@ function formOsMontagem(){
    <label class="f">Nº do pedido<input name="pedido" type="number" min="1" data-live value="${pedido}" required></label></div>
    <label class="f">Cliente<input name="cliente" placeholder="Ex: Escola Ballet Duarte" value="${esc(o0.cliente||'')}" required></label>
    ${temEt?'':'<div class="pill warn" style="white-space:normal">Esse produto ainda não tem etapas. Cadastre em Produtos e etapas para a OS aparecer na gerência.</div>'}
-   <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(!o0.setores||!o0.setores.length||o0.setores.includes(st))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div></div>
+   <div><div class="sm muted" style="margin-bottom:8px">Setores por onde esta OS passa</div><div class="chips">${setoresAll().map(st=>`<label class="chip row" style="gap:6px;cursor:pointer"><input type="checkbox" name="setores" value="${esc(st)}" ${(o0.setores?o0.setores.includes(st):(!setoresDoProduto(pid).length||setoresDoProduto(pid).includes(st)))?'checked':''} style="width:auto">${esc(st)}</label>`).join('')}</div><p class="sm faint" style="margin-top:6px">Já vêm marcados os setores usados nas etapas deste produto.</p></div>
    <div class="row between"><span class="muted sm">Código da OS</span><b id="codeprev" style="font-size:18px;letter-spacing:.04em">${codeOs(pid,cor.nome,pedido)}</b></div>
    <div><div class="sm muted" style="margin-bottom:8px">Quantidade por numeração. O número pequeno é o que há no estoque de corte.</div><div class="sizes">${sizes.map(n=>`<label>${n} <span class="faint">/${valEst(cor,n)}</span><input type="number" min="0" max="${valEst(cor,n)}" name="s${n}" aria-label="Quantidade do ${n}" value="${(o0.grade&&o0.grade[n])||''}"></label>`).join('')}</div></div>`,
    'Criar OS de Montagem',fd=>{
@@ -1590,10 +1593,12 @@ function formOsMontagem(){
     ui.osm=null;commit('OS de Montagem '+codigo+' criada. Quantidades retiradas do estoque de corte de '+src.nome+'.',true);
   },true);
 }
+Object.assign(C,{osPidSel(){const f=$('#mf');if(!f)return;const o0=ui.osNovo||(ui.osNovo={});o0.pid=+f.pid.value;o0.cor=f.cor.value;o0.pedido=f.pedido.value;o0.cliente=f.cliente.value;formOs();osRangeRefresh()}});
 Object.assign(C,{osmSel(){
   const f=$('#mf');if(!f)return;const o0=ui.osm||(ui.osm={}),np=+f.pid.value;
-  if(np!==o0.pid){o0.pid=np;o0.ck=null}else o0.ck=corKey(f.cor.value);
-  o0.cliente=f.cliente.value;o0.pedido=f.pedido.value;o0.setores=[...f.querySelectorAll('input[name=setores]:checked')].map(i=>i.value);formOsMontagem();
+  if(np!==o0.pid){o0.pid=np;o0.ck=null;o0.setores=null}
+  else{o0.ck=corKey(f.cor.value);o0.setores=[...f.querySelectorAll('input[name=setores]:checked')].map(i=>i.value)}
+  o0.cliente=f.cliente.value;o0.pedido=f.pedido.value;formOsMontagem();
 }});
 
 /* ---------- planilha do estoque ---------- */
@@ -1618,7 +1623,7 @@ Object.assign(A,{
   fichaVolta(){ui.tab='os';ui.gerOs=null;draw();window.scrollTo(0,0)},
   estTipo(d){ui.estTipo=d.k;ui.estFab=false;draw(true)},
   estFab(){ui.estFab=!ui.estFab;draw(true)},
-  osNova(d){closeModal();if(d.k==='montagem'){ui.osm=null;formOsMontagem()}else formOs()},
+  osNova(d){closeModal();if(d.k==='montagem'){ui.osm=null;formOsMontagem()}else{ui.osNovo=null;formOs()}},
   estNovaMont(){ui.estFab=false;ui.osm=null;draw(true);formOsMontagem()},
   estPlanilha(){ui.estFab=false;draw(true);
     modal('Baixar planilha de estoque',`<p class="sm muted">Escolha o que baixar.</p><div class="stack" style="gap:8px"><button type="button" class="btn" data-act="estXls" data-k="corte">${ic('download')}Estoque de corte</button><button type="button" class="btn" data-act="estXls" data-k="sapatilha">${ic('download')}Estoque de sapatilha</button><button type="button" class="btn" data-act="estXls" data-k="ambos">${ic('download')}Os dois estoques (uma planilha, duas abas)</button></div>`,'Fechar',()=>{})},

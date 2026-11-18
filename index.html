@@ -625,10 +625,10 @@ V.os=()=>`<div class="stack">${header('Fichas e ordens de serviço','Código da 
  ${osFiltroBar()}
  <div class="glass flush"><div class="tw"><table><thead><tr><th>OS</th><th>Cliente</th><th>Produto</th><th>Cor</th><th class="c">Peças</th><th>Progresso</th><th class="c">Status</th><th class="r"></th></tr></thead><tbody>
  ${osFiltradas().map(o=>{const tot=Object.values(o.grade).reduce((s,v)=>s+Number(v),0),p=osProgress(o);
-  return `<tr class="os-${tipoOs(o)}" data-fid="${o.id}" style="cursor:pointer"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${transfPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
+  return `<tr class="os-${tipoOs(o)}" data-fid="${o.id}" style="cursor:pointer"><td><b>${esc(o.codigo)}</b> ${tipoPill(o)}${osAntiga(o)?` <span class="pill warn" title="Esta OS foi aberta em ${mesLong(mesDe(o.criadoEm))} e ainda está em andamento">Mês passado · ${mesNome(mesDe(o.criadoEm))}</span>`:''}${transfPill(o)}${unAtual()==='ALL'?` <span class="pill">${esc(unNome(uOf(o)))}</span>`:''}${o.criadaPor?`<br><span class="pill warn" title="Criada por ${esc(o.criadaPor.autor)} (${esc(o.criadaPor.unNome)}) em ${esc(o.criadaPor.em)}">Criada por ${esc(o.criadaPor.unNome)}: ${esc(o.criadaPor.autor)}, ${esc(o.criadaPor.em)}</span>`:''}</td><td>${esc(o.cliente)}</td><td class="muted">${esc((prodDe(o.pid)||{}).nome)}${(o.setores&&o.setores.length)?`<br><span class="faint sm">${esc(o.setores.join(', '))}</span>`:''}</td><td class="muted">${esc(o.cor)}</td><td class="c num">${ni(tot)}</td>
   <td style="min-width:130px"><div class="row" style="flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><span class="num sm muted">${ni(p)}%</span>${o.status==='Concluída'?'<span class="pill ok">Finalizada</span>':''}</div></td>
   <td class="c"><select style="width:auto" aria-label="Status da ${esc(o.codigo)}" data-chg="osStatus" data-id="${o.id}" ${tool('osedit')?'':'disabled'}><option ${o.status==='Em andamento'?'selected':''}>Em andamento</option><option ${o.status==='Concluída'?'selected':''}>Concluída</option></select></td>
-  <td class="r">${isDir()&&tipoOs(o)==='costura'?`<button class="ib" aria-label="Transferir ${esc(o.codigo)} para outra unidade" title="Transferir para outra unidade" data-act="transferir" data-id="${o.id}">${ic('truck')}</button>`:''}${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${tool('osdel')?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||`<tr><td colspan="8" class="empty">${S.os.length?'Nenhuma OS neste filtro.':'Nenhuma OS cadastrada.'}</td></tr>`}</tbody></table></div></div>${transfCard()}</div>`;
+  <td class="r">${isDir()&&tipoOs(o)==='costura'?`<button class="ib" aria-label="Transferir ${esc(o.codigo)} para outra unidade" title="Transferir para outra unidade" data-act="transferir" data-id="${o.id}">${ic('truck')}</button>`:''}${o.status!=='Concluída'&&tool('osedit')?`<button class="ib" aria-label="Finalizar ${esc(o.codigo)}" title="Finalizar OS" data-act="finOs" data-id="${o.id}">${ic('check')}</button>`:''}${tool('osedit')?`<button class="ib" aria-label="Editar ${esc(o.codigo)}" data-act="editOs" data-id="${o.id}">${ic('pencil')}</button>`:''}${tool('osdel')?`<button class="ib del" aria-label="Remover ${esc(o.codigo)}" data-act="delOs" data-id="${o.id}">${ic('trash')}</button>`:''}</td></tr>`}).join('')||`<tr><td colspan="8" class="empty">${S.os.length?'Nenhuma OS neste filtro ou mês.':'Nenhuma OS cadastrada.'}</td></tr>`}</tbody></table></div></div>${transfCard()}</div>`;
 
 function osFrac(oid,eid,de,ate){const o=osDe(oid);const total=Object.values(o.grade).reduce((s,v)=>s+Number(v),0);if(!total)return 0;
   let d=0;Object.values(doneMap(o,eid,de,ate)).forEach(v=>d+=v);return d/total*100}
@@ -1088,7 +1088,7 @@ function formOs(id){
       S.perdas=S.perdas.filter(p=>p.oid!==o.id||grade[p.num]);
       Object.keys(drafts).forEach(k=>{if(k.split('|')[1]==o.id)drafts[k]=drafts[k].filter(n=>grade[n])});
     }else{
-      const dest=String(fd.get('un')||unAtual()),rec={id:uid(),codigo,cliente,cor,pedido,pid,grade,setores,status:'Em andamento',tipo:'costura'};
+      const dest=String(fd.get('un')||unAtual()),rec={id:uid(),codigo,cliente,cor,pedido,pid,grade,setores,status:'Em andamento',tipo:'costura',criadoEm:today()};
       if(dest!==unAtual()){criarOsOutraUnidade(rec,dest);return false}
       S.os.push(rec);
     }
@@ -1714,11 +1714,15 @@ async function loadAll(first){
   const rows=await fetchRows();
   if(first){S=emptyState();snap={}}
   const ch=reconcile(rows);
-  return{init:rows.some(r=>r.colecao==='meta'&&r.id==='init'),changed:ch};
+  return{init:rows.some(r=>r.colecao==='meta'&&r.id==='init')||rows.length>0,changed:ch};
 }
 
 /* gravação: compara com o último estado salvo e envia só o que mudou */
-function syncStatusOs(){let ch=false;S.os.forEach(o=>{if(o.status!=='Concluída'&&!o.autoFin&&osProgress(o)>=99.999){o.status='Concluída';o.autoFin=true;ch=true}});return ch}
+function syncStatusOs(){let ch=false;S.os.forEach(o=>{if(o.status!=='Concluída'&&!o.autoFin&&osProgress(o)>=99.999){o.status='Concluída';o.autoFin=true;ch=true}
+  const ds=S.aps.filter(a=>a.oid===o.id&&a.d).map(a=>a.d).sort();
+  if(!o.criadoEm){o.criadoEm=ds[0]||today();ch=true}
+  if(o.status==='Concluída'&&!o.fimEm){o.fimEm=(ds.length&&ds[ds.length-1])||o.criadoEm;if(o.finForcada||o.autoFin||!ds.length)o.fimEm=today();ch=true}
+  if(o.status!=='Concluída'&&o.fimEm){delete o.fimEm;ch=true}});return ch}
 function persist(){if(ro())return;syncStatusOs();lastPersist=Date.now();clearTimeout(flushT);flushT=setTimeout(flush,350)}
 async function flush(){
   if(!sb||!session)return;
@@ -2483,12 +2487,14 @@ async function executaTransfEstoque(x){
 
 /* ======================= Baixa do estoque de sapatilha (PDF temporário) ======================= */
 const baixas=()=>S.baixas||(S.baixas=[]);
-const expBaixa=d=>{const [y,m]=d.split('-').map(Number);return ymd(new Date(y,m+1,0))};
-/* PDFs de baixa são temporários: somem depois do último dia do mês seguinte à baixa */
+const expBaixa=d=>addDays(d,30);
+/* PDFs de baixa são temporários: ficam 30 dias a partir da emissão e depois somem */
 function purgeBaixas(){
   if(!isDir()||!S||!S.baixas||!S.baixas.length)return;
-  const t=today(),keep=S.baixas.filter(b=>!b.exp||b.exp>=t);
-  if(keep.length!==S.baixas.length){S.baixas=keep;persist()}
+  const t=today();let ch=false;S.baixas.forEach(b=>{if(b.d){const e=expBaixa(b.d);if(b.exp!==e){b.exp=e;ch=true}}});
+  const keep=S.baixas.filter(b=>!b.exp||b.exp>=t);
+  if(keep.length!==S.baixas.length){S.baixas=keep;ch=true}
+  if(ch)persist()
 }
 {const _d=draw;draw=function(k){try{purgeBaixas()}catch(e){console.error(e)}return _d(k)}}
 function baixaBar(){
@@ -2500,7 +2506,7 @@ function baixaCard(){
   const v=unAtual(),pm=unPermitidas();
   const L=baixas().filter(b=>v==='ALL'?pm.includes(b.u):b.u===v).sort((a,b)=>(b.num||0)-(a.num||0));
   const rows=L.map(b=>`<tr><td class="num"><b>${String(b.num).padStart(4,'0')}</b></td><td class="num muted">${br(b.d)} ${esc(b.h)}</td>${v==='ALL'?`<td>${esc(unNome(b.u))}</td>`:''}<td class="c num"><b>${ni(b.total)}</b></td><td class="muted">${esc(b.autor)}${b.obs?`<br><span class="faint sm">${esc(b.obs)}</span>`:''}</td><td class="muted">${br(b.exp)}</td><td class="r"><button class="ib" aria-label="Baixar PDF da baixa ${b.num}" title="Baixar PDF" data-act="baixaPdf" data-id="${b.id}">${ic('file')}</button></td></tr>`).join('');
-  return `<div class="glass flush"><div class="row between" style="padding:18px 20px 6px"><h3>Histórico de baixas</h3><span class="sm faint">PDFs temporários: apagados automaticamente no fim do mês seguinte à baixa</span></div><div class="tw"><table><thead><tr><th>Nº</th><th>Data</th>${v==='ALL'?'<th>Unidade</th>':''}<th class="c">Peças</th><th>Responsável</th><th>Disponível até</th><th class="r"></th></tr></thead><tbody>${rows||`<tr><td colspan="${v==='ALL'?7:6}" class="empty">Nenhuma baixa guardada.</td></tr>`}</tbody></table></div></div>`;
+  return `<div class="glass flush"><div class="row between" style="padding:18px 20px 6px"><h3>Histórico de baixas</h3><span class="sm faint">PDFs temporários: apagados automaticamente 30 dias após a emissão</span></div><div class="tw"><table><thead><tr><th>Nº</th><th>Data</th>${v==='ALL'?'<th>Unidade</th>':''}<th class="c">Peças</th><th>Responsável</th><th>Disponível até</th><th class="r"></th></tr></thead><tbody>${rows||`<tr><td colspan="${v==='ALL'?7:6}" class="empty">Nenhuma baixa guardada.</td></tr>`}</tbody></table></div></div>`;
 }
 function resumoSapatilha(u){
   const R=estoqueCalc([u]),SZ=szDesc(),prods=[];
@@ -2578,17 +2584,43 @@ Object.assign(A,{
 });
 
 /* ======================= Filtro das OS ======================= */
+const mesDe=d=>(d||today()).slice(0,7);
+const mesOs=o=>mesDe(o.status==='Concluída'?(o.fimEm||o.criadoEm):o.criadoEm);
+const MESES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const mesNome=m=>MESES[+m.slice(5,7)-1]+'/'+m.slice(2,4);
+const mesLong=m=>['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][+m.slice(5,7)-1]+' de '+m.slice(0,4);
+function osMesesLista(){const [y,m]=today().split('-').map(Number),r=[];for(let i=0;i<=6;i++)r.push(ymd(new Date(y,m-1-i,1)).slice(0,7));return r}
+/* OS visíveis: mês atual = tudo em andamento + finalizadas neste mês; mês anterior = o que foi produzido naquele mês */
+function osBase(){
+  const cur=today().slice(0,7),m=ui.osMes||cur;
+  return S.os.filter(o=>m===cur?(o.status!=='Concluída'||mesOs(o)===cur):mesOs(o)===m);
+}
+const osAntiga=o=>o.status!=='Concluída'&&mesDe(o.criadoEm)<today().slice(0,7);
 function osFiltradas(){
   const t=ui.osTipo||'todas',sit=ui.osSit||'';
-  return S.os.filter(o=>(t==='todas'||tipoOs(o)===t)&&(!sit||(sit==='fin'?o.status==='Concluída':o.status!=='Concluída')));
+  return osBase().filter(o=>(t==='todas'||tipoOs(o)===t)&&(!sit||(sit==='fin'?o.status==='Concluída':o.status!=='Concluída')));
 }
+/* retenção: OS finalizadas há mais de 6 meses (e seus lançamentos) são apagadas automaticamente */
+function purgeOs(){
+  if(!isDir()||!S||!S.os||!S.os.length)return;
+  const [y,m,d]=today().split('-').map(Number),lim=ymd(new Date(y,m-1-6,d));
+  const old=S.os.filter(o=>o.status==='Concluída'&&o.fimEm&&o.fimEm<lim&&!(typeof transfDe==='function'&&transfDe(o.id).length));
+  if(!old.length)return;
+  const ids=new Set(old.map(o=>o.id));
+  S.os=S.os.filter(o=>!ids.has(o.id));S.aps=S.aps.filter(a=>!ids.has(a.oid));S.perdas=S.perdas.filter(p=>!ids.has(p.oid));persist();
+}
+{const _d2=draw;draw=function(k){try{purgeOs()}catch(e){console.error(e)}return _d2(k)}}
 function osFiltroBar(){
-  const t=ui.osTipo||'todas',sit=ui.osSit||'';
-  const n=fn=>S.os.filter(fn).length;
+  const t=ui.osTipo||'todas',sit=ui.osSit||'',cur=today().slice(0,7),mm=ui.osMes||cur,B=osBase();
+  const n=fn=>B.filter(fn).length;
   const b=(k,l,c)=>`<button class="${t===k?'on':''}" data-act="osTipo" data-k="${k}">${l} <span class="num sm" style="opacity:.65">${c}</span></button>`;
-  return `<div class="row" style="gap:10px"><div class="seg" role="group" aria-label="Filtrar por tipo">${b('todas','Todas',S.os.length)}${b('costura','Costura',n(o=>tipoOs(o)==='costura'))}${b('montagem','Montagem',n(o=>tipoOs(o)==='montagem'))}</div>
-  <div class="seg" role="group" aria-label="Filtrar por situação"><button class="${sit==='and'?'on':''}" aria-pressed="${sit==='and'}" data-act="osAnd">Em andamento <span class="num sm" style="opacity:.65">${n(o=>o.status!=='Concluída')}</span></button><button class="${sit==='fin'?'on':''}" aria-pressed="${sit==='fin'}" data-act="osFin">Finalizadas <span class="num sm" style="opacity:.65">${n(o=>o.status==='Concluída')}</span></button></div></div>`;
+  const opts=osMesesLista().map(x=>`<option value="${x}" ${x===mm?'selected':''}>${x===cur?'Mês atual · ':''}${mesLong(x)}</option>`).join('');
+  return `<div class="row" style="gap:10px"><div class="seg" role="group" aria-label="Filtrar por tipo">${b('todas','Todas',B.length)}${b('costura','Costura',n(o=>tipoOs(o)==='costura'))}${b('montagem','Montagem',n(o=>tipoOs(o)==='montagem'))}</div>
+  <div class="seg" role="group" aria-label="Filtrar por situação"><button class="${sit==='and'?'on':''}" aria-pressed="${sit==='and'}" data-act="osAnd">Em andamento <span class="num sm" style="opacity:.65">${n(o=>o.status!=='Concluída')}</span></button><button class="${sit==='fin'?'on':''}" aria-pressed="${sit==='fin'}" data-act="osFin">Finalizadas <span class="num sm" style="opacity:.65">${n(o=>o.status==='Concluída')}</span></button></div>
+  <label class="row" style="gap:8px;flex-wrap:nowrap"><span class="sm muted">Mês</span><select style="width:auto" aria-label="Mês das fichas" data-chg="osMes">${opts}</select></label>
+  ${mm!==cur?`<span class="pill warn">Arquivo de ${mesLong(mm)}</span>`:''}<span class="sm faint">As OS finalizadas ficam guardadas por 6 meses.</span></div>`;
 }
+Object.assign(C,{osMes(el){ui.osMes=el.value===today().slice(0,7)?'':el.value;draw(true)}});
 Object.assign(A,{osTipo(d){ui.osTipo=d.k;draw(true)},osFin(){ui.osSit=ui.osSit==='fin'?'':'fin';draw(true)},osAnd(){ui.osSit=ui.osSit==='and'?'':'and';draw(true)}});
 
 /* partida */

@@ -28,6 +28,12 @@ tr.os-montagem td:first-child{box-shadow:inset 3px 0 0 #60a5fa}
 .estGrid td.ed:hover{background:rgba(251,191,36,.16);color:#fbbf24}
 .estGrid td.adj{box-shadow:inset 0 -2px 0 rgba(251,191,36,.6)}
 .estpop{position:fixed;z-index:70;width:190px;background:#101014;border:2px solid #fbbf24;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 18px 40px -10px rgba(0,0,0,.8)}
+.corlnk{cursor:pointer;border-bottom:1px dashed rgba(251,191,36,.6)}.corlnk:hover{color:#fbbf24}
+.corx{margin-left:8px;opacity:.55;vertical-align:middle}.corx:hover{opacity:1}
+.ebg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.ebc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border:1px solid var(--line,#2a2a33);border-radius:12px;cursor:pointer;position:relative;min-height:74px}
+.ebc input{position:absolute;opacity:0;pointer-events:none}.ebc b{font-size:15px}.ebc .cur{font-size:12px;opacity:.65}.ebc .nw{font-size:13px;font-weight:700;color:#fbbf24;min-height:16px}
+.ebc.on{border-color:#fbbf24;background:rgba(251,191,36,.1)}
 .estpop input{text-align:center;font-size:16px;font-weight:600}
 .estpop .btn{justify-content:center;background:var(--grad);color:#fff;border:0;text-transform:uppercase;letter-spacing:.04em;font-weight:700;font-size:12px}
 .estfab{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
@@ -890,8 +896,9 @@ async function exportRep(f){
 /* ---------- casca, login, modais ---------- */
 let modalOk=null,toastT=null;
 const TABS_DIR=[['geral','Visão geral','grid'],['funcs','Funcionários','users'],['prods','Produtos e etapas','package'],['os','Fichas e OS','clip'],['estoque','Estoque','package'],['prod','Produção e análise','bars'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download'],['usuarios','Controle de acesso','shield']];
-const TABS_GER_ALL=[['ger','Lançamento do dia','clip'],['os','Fichas e OS','package'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download']];
-const PERMS=[['ger','Lançamento do dia'],['retro','Lançar em dias anteriores'],['os','Fichas e OS'],['rank','Ranking'],['desemp','Desempenho individual (por colaborador)'],['setor','Análise por setor'],['perdas','Perdas'],['faltas','Presença e faltas'],['avisos','Avisos'],['relat','Relatórios']];
+const TABS_GER_ALL=[['ger','Lançamento do dia','clip'],['os','Fichas e OS','package'],['estoque','Estoque','package'],['prod','Produção e análise','bars'],['rank','Ranking','trophy'],['desemp','Desempenho individual','award'],['setor','Análise por setor','target'],['perdas','Perdas','alert'],['faltas','Presença','cal'],['avisos','Avisos','bell'],['relat','Relatórios','download']];
+const PERMS=[['ger','Lançamento do dia'],['retro','Lançar em dias anteriores'],['os','Fichas e OS'],['estoque','Estoque (só consulta)'],['prod','Produção e análise'],['rank','Ranking'],['desemp','Desempenho individual (por colaborador)'],['setor','Análise por setor'],['perdas','Perdas'],['faltas','Presença e faltas'],['avisos','Avisos'],['relat','Relatórios']];
+const PGROUPS=[['Operação do dia',['ger','retro']],['Produção e estoque',['os','estoque','prod']],['Pessoas e desempenho',['rank','desemp','setor','perdas','faltas']],['Comunicação',['avisos','relat']]];
 const DEFAULT_GER=['ger','retro','os','rank','setor','faltas','avisos'];
 const TOOLS=[['osnew','Criar nova OS'],['osedit','Editar e finalizar OS'],['osio','Importar e baixar planilhas de OS'],['osdel','Excluir OS'],['regperda','Registrar perdas'],['regfalta','Registrar e apagar faltas']];
 const hiddenAll=()=>((S.cfg&&S.cfg.gerOcultas)||['osdel']);
@@ -1517,7 +1524,7 @@ function estoqueCalc(uns){
 }
 const estUns=()=>{const v=unAtual();return v==='ALL'?unPermitidas():[v]};
 /* Entrada manual: guarda só a diferença entre o que o sistema calcula e o que a Diretoria digitou. */
-function salvaEst(pid,cor,n,est,valor){
+function salvaEst(pid,cor,n,est,valor,quiet){
   if(unAtual()==='ALL'){toast('Escolha uma unidade no menu para ajustar o estoque.');return}
   const R=estoqueCalc([unAtual()]),m=R[est][pid],c=m&&m.get(corKey(cor));
   const base=c?(c.base[n]||0):0;
@@ -1525,12 +1532,16 @@ function salvaEst(pid,cor,n,est,valor){
   const delta=valor-base;
   if(delta===0){if(i>=0)arr.splice(i,1)}
   else{const rec={id:i>=0?arr[i].id:uid(),u:unAtual(),pid,cor:String(cor).trim(),n,est,delta,autor:meuNome(),em:today()};if(i>=0)arr[i]=rec;else arr.push(rec)}
-  commit('Estoque atualizado.',true);
+  if(valor>0)estMostra(pid,cor,est);
+  if(!quiet)commit('Estoque atualizado.',true);
 }
+const estOcKey=(pid,cor,est)=>unAtual()+'|'+pid+'|'+est+'|'+corKey(cor);
+const estOculta=(pid,cor,est)=>((S.cfg&&S.cfg.estOcultas)||[]).includes(estOcKey(pid,cor,est));
+function estMostra(pid,cor,est){if(S.cfg&&S.cfg.estOcultas){const k=estOcKey(pid,cor,est);if(S.cfg.estOcultas.includes(k))S.cfg.estOcultas=S.cfg.estOcultas.filter(x=>x!==k)}}
 V.estoque=()=>{
   const est=ui.estTipo==='sapatilha'?'sapatilha':'corte';
   const uns=estUns(),R=estoqueCalc(uns),SZ=szDesc();
-  const prods=prodsOrd().filter(p=>prodTipo(p)===(est==='corte'?'costura':'montagem')).map(p=>{const m=R[est][p.id];const linhas=m?[...m.values()]:[];return {p,linhas,total:linhas.reduce((s,c)=>s+totEst(c),0)}});
+  const prods=prodsOrd().filter(p=>prodTipo(p)===(est==='corte'?'costura':'montagem')).map(p=>{const m=R[est][p.id];const linhas=m?[...m.values()].filter(c=>totEst(c)>0||!estOculta(p.id,c.nome,est)):[];return {p,linhas,total:linhas.reduce((s,c)=>s+totEst(c),0)}});
   const sub=est==='corte'?'Costura finalizada. É daqui que a OS de Montagem puxa as peças.':'Sapatilhas prontas, vindas das OS de Montagem finalizadas.';
   const seg=`<div class="seg" role="tablist" aria-label="Tipo de estoque"><button role="tab" class="${est==='corte'?'on':''}" data-act="estTipo" data-k="corte">Estoque de corte</button><button role="tab" class="${est==='sapatilha'?'on':''}" data-act="estTipo" data-k="sapatilha">Estoque de sapatilha</button></div>`;
   if(!prods.length)return `<div class="stack">${header('Estoque',sub,seg)}<div class="glass empty">Nenhum produto de ${est==='corte'?'Costura':'Montagem'} cadastrado. Cadastre em Produtos e etapas.</div></div>`;
@@ -1542,7 +1553,7 @@ V.estoque=()=>{
   if(!cur.linhas.length)grade=`<div class="glass empty">Nenhuma cor de ${esc(cur.p.nome)} nesta unidade ainda.${ed?' Use "Adicionar cor" para dar entrada manual.':''}</div>`;
   else{
     const col={};SZ.forEach(n=>col[n]=0);
-    const rows=cur.linhas.map(c=>`<tr><td>${esc(c.nome)}</td>${SZ.map(n=>{const q=valEst(c,n);col[n]+=q;const aj=c.adj[n];
+    const rows=cur.linhas.map(c=>`<tr><td>${ed?`<span class="corlnk" data-act="estCor" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-e="${est}" title="Clique para adicionar estoque em massa">${esc(c.nome)}</span><button type="button" class="ib del corx" aria-label="Excluir a cor ${esc(c.nome)}" title="Excluir cor" data-act="estDelCor" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-e="${est}">${ic('trash')}</button>`:esc(c.nome)}</td>${SZ.map(n=>{const q=valEst(c,n);col[n]+=q;const aj=c.adj[n];
       return `<td class="${q?'':'z'} ${ed?'ed':''} ${aj?'adj':''}" ${ed?`data-act="estCell" data-p="${cur.p.id}" data-c="${esc(c.nome)}" data-n="${n}" data-e="${est}" data-v="${q}"`:''} ${aj?`title="Ajuste no estoque (${aj>0?'+':''}${aj}): entrada manual, transferência ou baixa"`:''}>${q?ni(q):'·'}</td>`}).join('')}<td class="tot">${ni(totEst(c))}</td></tr>`).join('');
     grade=`<div class="glass"><div class="row between" style="margin-bottom:10px;flex-wrap:wrap"><b>${esc(cur.p.nome)} · ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'}</b><span class="row" style="gap:12px"><span class="sm muted">${cur.linhas.length} cor(es) · ${ni(cur.total)} pç · ${unAtual()==='ALL'?'todas as unidades':esc(unNome(unAtual()))}</span>${ed?`<button class="btn sm" data-act="estTransf">${ic('truck')}Transferir</button><button class="btn sm" data-act="estNovaCor">${ic('plus')}Adicionar cor</button>`:''}</span></div>
     <div class="estWrap"><table class="estGrid"><thead><tr><th>Cor \ Numeração</th>${SZ.map(n=>`<th>${n}</th>`).join('')}<th>Total</th></tr></thead><tbody>${rows}</tbody>
@@ -1552,7 +1563,7 @@ V.estoque=()=>{
     ?'Cada numeração entra quando todas as etapas de costura dela terminam, mesmo com a OS ainda em andamento. OS finalizada manualmente entra inteira. As OS de Montagem retiram daqui a quantidade da grade assim que são criadas.'
     :'Cada numeração entra quando todas as etapas de montagem dela terminam, mesmo com a OS ainda em andamento. OS finalizada manualmente entra inteira.';
   const fab=isDir()?`<div class="estfab">${ui.estFab?`<div class="estfab-p"><button data-act="estTransf">${ic('truck')}<span>Transferir estoque</span></button><button data-act="estNovaMont">${ic('plus')}<span>Criar OS de <b>Montagem</b></span></button><button data-act="estPlanilha">${ic('download')}<span>Baixar Planilha</span></button></div>`:''}<button class="estfab-b" data-act="estFab" aria-label="Ações do estoque" aria-expanded="${!!ui.estFab}">${ic('gear')}</button></div>`:'';
-  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${est==='sapatilha'?baixaBar():''}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade.':''}</p>${est==='sapatilha'?baixaCard():''}${transfCard()}</div>${fab}`;
+  return `<div class="stack">${header('Estoque',sub,seg)}${tabs}${est==='sapatilha'?baixaBar():''}${grade}<p class="sm faint">${nota}${ed?' Para corrigir um valor, clique na quantidade da grade. Para adicionar em massa, clique no nome da cor.':''}</p>${est==='sapatilha'?baixaCard():''}${transfCard()}</div>${fab}`;
 };
 
 /* ---------- OS de Montagem (puxa do estoque de corte) ---------- */
@@ -1635,6 +1646,30 @@ Object.assign(A,{
     $('#pop').innerHTML=`<form class="estpop" id="ef" style="left:${x}px;top:${y}px" data-p="${esc(d.p)}" data-c="${esc(d.c)}" data-n="${esc(d.n)}" data-e="${esc(d.e)}"><div>Qtd atual: <b>${esc(d.v)}</b> <span class="faint sm">· nº ${esc(d.n)}</span></div><input name="qtd" type="number" min="0" inputmode="numeric" value="${esc(d.v)}" aria-label="Nova quantidade" required><button class="btn">Salvar</button></form>`;
     const i=$('#ef input');if(i){i.focus();i.select()}
   },
+  estCor(d){
+    const SZ=szDesc(),R=estoqueCalc([unAtual()]),m=R[d.e][+d.p],c=m&&m.get(corKey(d.c)),p=prodDe(+d.p);
+    ui.eb={p:+d.p,c:d.c,e:d.e};
+    modal('Adicionar estoque · '+(p?p.nome:'')+' · '+d.c,`<p class="sm muted">Marque as numerações, digite quanto <b>adicionar</b> em cada uma e confirme. O sistema soma ao que já existe.</p>
+     <div class="row" style="gap:10px;flex-wrap:wrap"><label class="f" style="min-width:150px">Quantidade a adicionar<input name="qtd" type="number" min="1" inputmode="numeric" data-eb="q" required></label>
+     <button type="button" class="btn sm" data-act="ebAll" data-v="1">Marcar todas</button><button type="button" class="btn sm" data-act="ebAll" data-v="0">Limpar</button><button type="button" class="btn sm" data-act="ebAll" data-v="2">Só as que têm estoque</button></div>
+     <div class="ebg">${SZ.map(n=>{const q=c?valEst(c,n):0;return `<label class="ebc"><input type="checkbox" name="n" value="${n}" data-eb="c" data-cur="${q}"><b>${n}</b><span class="cur">${q?ni(q):'·'}</span><span class="nw"></span></label>`}).join('')}</div>`,'Adicionar',fd=>{
+      const q=parseInt(fd.get('qtd'))||0,ns=fd.getAll('n').map(Number);
+      if(q<1){toast('Informe a quantidade a adicionar.');return false}
+      if(!ns.length){toast('Marque pelo menos uma numeração.');return false}
+      const b=ui.eb,R2=estoqueCalc([unAtual()]),m2=R2[b.e][b.p],c2=m2&&m2.get(corKey(b.c));
+      ns.forEach(n=>salvaEst(b.p,b.c,n,b.e,(c2?valEst(c2,n):0)+q,true));
+      commit('Entrada: +'+ni(q)+' em '+ns.length+' numeração(ões) de '+((prodDe(b.p)||{}).nome||'')+' '+b.c+' ('+ni(q*ns.length)+' pç).',true);
+    },true);
+  },
+  ebAll(d){document.querySelectorAll('#mf input[data-eb=c]').forEach(i=>{i.checked=d.v==='1'||(d.v==='2'&&+i.dataset.cur>0)});ebPrev()},
+  estDelCor(d){
+    const R=estoqueCalc([unAtual()]),m=R[d.e][+d.p],c=m&&m.get(corKey(d.c));if(!c)return;
+    const t=totEst(c),p=prodDe(+d.p);
+    confirmBox('Excluir a cor <b>'+esc(d.c)+'</b> de '+esc(p?p.nome:'')+' no estoque de '+(d.e==='corte'?'corte':'sapatilha')+'?'+(t>0?' As <b>'+ni(t)+' peça(s)</b> que estão nela serão removidas do estoque.':' Ela está zerada.'),'Excluir',()=>{
+      szDesc().forEach(n=>{if(valEst(c,n)>0)salvaEst(+d.p,d.c,n,d.e,0,true)});
+      const k=estOcKey(+d.p,d.c,d.e);S.cfg.estOcultas=[...(S.cfg.estOcultas||[]).filter(x=>x!==k),k];
+      commit('Cor "'+d.c+'" excluída do estoque.',true)})
+  },
   estNovaCor(){
     const est=ui.estTipo==='sapatilha'?'sapatilha':'corte',SZ=szDesc();
     modal('Adicionar cor ao estoque',`<p class="sm muted">Dá entrada manual em ${est==='corte'?'Estoque de corte':'Estoque de sapatilha'} de ${esc((prodDe(ui.estProd)||{}).nome||'')}. Depois é só clicar nas outras numerações da grade.</p>
@@ -1646,6 +1681,12 @@ Object.assign(A,{
   }
 });
 
+function ebPrev(){
+  const f=$('#mf');if(!f)return;const q=parseInt((f.querySelector('input[data-eb=q]')||{}).value)||0;
+  f.querySelectorAll('.ebc').forEach(l=>{const i=l.querySelector('input'),w=l.querySelector('.nw');l.classList.toggle('on',i.checked);w.textContent=(i.checked&&q>0)?'→ '+ni(+i.dataset.cur+q):''});
+}
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#mf [data-eb]'))ebPrev()});
+document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#mf [data-eb]'))ebPrev()});
 Object.assign(A,{osModelo(){baixarModelo()},osExport(){osExportForm()},osChk(d){document.querySelectorAll('#mf input[name=o]').forEach(i=>i.checked=d.v==='1')},osImport(){const i=$('#osFile');if(i)i.click()}});
 Object.assign(A,{
   etRmExtra(d){const e=etapaDe(+d.id);if(!e)return;e.extras=(e.extras||[]).filter(x=>x!==d.s);commit('Setor tirado da etapa.',true)},
@@ -2141,7 +2182,7 @@ function formUser(u){
    <div id="blkGer" ${isDirU?'hidden':''} class="stack" style="gap:14px">
     <label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" name="ro" ${sel.includes('ro')?'checked':''} style="width:auto;margin-top:3px"><span><b>Somente visualizar</b><br><span class="sm muted">Vê as telas marcadas abaixo, mas não lança, edita, cria nem apaga nada. Ignora \"Lançamento do dia\", \"Lançar em dias anteriores\" e as ferramentas.</span></span></label>
     <label class="f">Unidade<select name="unid">${opts.map(([k,l])=>`<option value="${esc(k)}" ${k===unSel?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
-    <div><div class="sm muted" style="margin-bottom:8px">Telas que este usuário pode abrir</div><div class="stack" style="gap:8px">${PERMS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="perm" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>
+    <div><div class="sm muted" style="margin-bottom:8px">Telas que este usuário pode abrir. Para só consultar (ex.: ver o Estoque sem alterar nada), marque "Somente visualizar" acima e deixe marcada apenas a tela desejada.</div><div class="stack" style="gap:12px">${PGROUPS.map(([g,ks])=>`<div class="stack" style="gap:6px"><b class="sm">${g}</b>${ks.map(k=>`<label class="row" style="gap:10px"><input type="checkbox" name="perm" value="${k}" ${sel.includes(k)?'checked':''} style="width:auto"> ${esc((PERMS.find(p=>p[0]===k)||[0,k])[1])}</label>`).join('')}</div>`).join('')}</div></div>
     <div><div class="sm muted" style="margin-bottom:8px">Ferramentas (desmarque para ocultar)</div><div class="stack" style="gap:8px">${TOOLS.map(([k,l])=>`<label class="row" style="gap:10px"><input type="checkbox" name="tool" value="${k}" ${oc.includes(k)?'':'checked'} style="width:auto"> ${esc(l)}</label>`).join('')}</div></div>
    </div>
    <div id="blkDir" ${isDirU?'':'hidden'} class="stack" style="gap:14px">
